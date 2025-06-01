@@ -5,9 +5,9 @@ import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, Send, Sparkles, MessageCircle,
-  Zap, User, Bot, ChevronRight, AlertCircle, RotateCcw
+  Zap, ChevronRight, RotateCcw
 } from "lucide-react";
-import { MarkdownRenderer } from "@/components/MarkdownRenderer";
+import { ChatMessage } from "@/components/ChatMessage";
 import { LoadingQuotes } from "@/components/LoadingQuotes";
 
 interface Message {
@@ -286,8 +286,8 @@ const Demo = () => {
 
       {/* Chat Area */}
       <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
-        {/* Messages Container */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        {/* Enhanced Messages Container */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
           {messages.length === 0 ? (
             // Welcome Screen
             <motion.div 
@@ -342,58 +342,16 @@ const Demo = () => {
             </motion.div>
           ) : (
             // Messages
-            <AnimatePresence>
-              {messages.map((message) => (
-                <motion.div
-                  key={message.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div className={`flex items-start space-x-3 max-w-[80%] ${
-                    message.sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''
-                  }`}>
-                    {/* Avatar */}
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      message.sender === 'user'
-                        ? 'bg-gradient-to-r from-gray-600 to-gray-700'
-                        : message.isError
-                        ? 'bg-gradient-to-r from-red-500 to-orange-500'
-                        : 'bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8]'
-                    }`}>
-                      {message.sender === 'user' ? (
-                        <User className="w-4 h-4 text-white" />
-                      ) : message.isError ? (
-                        <AlertCircle className="w-4 h-4 text-white" />
-                      ) : (
-                        <Bot className="w-4 h-4 text-white" />
-                      )}
-                    </div>
-
-                    {/* Message Bubble */}
-                    <div className={`rounded-2xl px-4 py-3 ${
-                      message.sender === 'user'
-                        ? 'bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8] text-white'
-                        : message.isError
-                        ? 'bg-red-500/20 border border-red-500/40 text-red-200'
-                        : 'bg-white/10 border border-white/20 text-gray-100'
-                    }`}>
-                      {message.sender === 'assistant' && !message.isError ? (
-                        <MarkdownRenderer
-                          content={message.content}
-                          className="text-sm"
-                        />
-                      ) : (
-                        <p className="text-sm leading-relaxed" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
-                          {message.content}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+            <div className="space-y-6">
+              <AnimatePresence>
+                {messages.map((message) => (
+                  <ChatMessage
+                    key={message.id}
+                    message={message}
+                  />
+                ))}
+              </AnimatePresence>
+            </div>
           )}
 
           {/* Enhanced Loading State with DevOps Quotes */}
@@ -410,9 +368,9 @@ const Demo = () => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Area */}
-        <motion.div 
-          className="border-t border-white/10 p-6"
+        {/* Enhanced Input Area */}
+        <motion.div
+          className="border-t border-white/10 p-6 bg-gradient-to-t from-black/20 to-transparent backdrop-blur-sm"
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
@@ -424,7 +382,7 @@ const Demo = () => {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Ask ZapGap about your infrastructure..."
-                className="w-full bg-white/10 border-white/20 text-white placeholder:text-gray-400 rounded-xl py-4 px-6 pr-12 focus:border-[#3ABCF7] focus:ring-[#3ABCF7] text-base"
+                className="w-full bg-white/10 border-white/20 text-white placeholder:text-gray-400 rounded-xl py-4 px-6 pr-12 focus:border-[#3ABCF7] focus:ring-[#3ABCF7] text-base shadow-lg backdrop-blur-sm transition-all duration-300 hover:bg-white/15 focus:bg-white/15"
                 style={{ fontFamily: '"Space Grotesk", sans-serif' }}
               />
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -434,7 +392,7 @@ const Demo = () => {
             <Button
               type="submit"
               disabled={!inputValue.trim() || isTyping}
-              className="bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8] hover:from-[#3ABCF7]/90 hover:to-[#8B2FF8]/90 text-white px-6 py-4 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8] hover:from-[#3ABCF7]/90 hover:to-[#8B2FF8]/90 text-white px-6 py-4 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
             >
               <Send className="w-5 h-5" />
             </Button>
