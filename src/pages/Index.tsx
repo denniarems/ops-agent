@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { 
   Zap, Shield, Cog, Cloud, Users, Target, Gauge, Lock, 
   Github, Linkedin, Twitter, MessageCircle, Sparkles, Brain, 
@@ -10,10 +11,12 @@ import {
   MessageSquare, Workflow, UserPlus, Link as LinkIcon, LineChart, ChevronDown
 } from "lucide-react";
 import PlatformSection from "@/components/PlatformSection";
-import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
+import UseCasesTable from "@/components/UseCasesTable";
+import PersonaFeatures from "@/components/PersonaFeatures";
+import ModernTextTransition from "@/components/ModernTextTransition";
+import AIAgentsTitle from "@/components/AIAgentsTitle";
 
-// Direct text transition component with smooth animation
-const ModernTextTransition = ({ texts }: { texts: string[] }) => {
+const AnimatedTextCycler = ({ texts }: { texts: string[] }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   
@@ -53,7 +56,8 @@ const ModernTextTransition = ({ texts }: { texts: string[] }) => {
 
 const Index = () => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [activeUseCase, setActiveUseCase] = useState(0);
+  // State for features section
+  // Note: activeUseCase state removed as it's no longer needed
   const [email, setEmail] = useState("");
   const [openFeatures, setOpenFeatures] = useState<number[]>([]);
   
@@ -311,25 +315,31 @@ const Index = () => {
             
             {/* Typewriter Animation for AI Agent Capabilities */}
             <motion.div
-              className="mb-8 flex justify-center"
+              className="mb-8 flex flex-col items-center justify-center"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              <ModernTextTransition 
-                texts={[
-                  "Cloud Troubleshooting",
-                  "Incident Resolution",
-                  "Automating Deployments",
-                  "Cost Optimization",
-                  "Compliance Checks",
-                  "Multi-Cloud Operations",
-                  "Real-Time Monitoring",
-                  "Auto-Remediation",
-                  "Terraform Execution",
-                  "CI/CD Management"
-                ]}
-              />
+              <div className="mb-2">
+                <span className="text-5xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8] px-8 py-2 rounded-full" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>AI Agents</span>
+              </div>
+              <div className="flex items-center">
+                <ModernTextTransition 
+                  prefix="for"
+                  texts={[
+                    "Cloud Troubleshooting",
+                    "Incident Resolution",
+                    "Automating Deployments",
+                    "Cost Optimization",
+                    "Compliance Checks",
+                    "Multi-Cloud Operations",
+                    "Real-Time Monitoring",
+                    "Auto-Remediation",
+                    "Terraform Execution",
+                    "CI/CD Management"
+                  ]}
+                />
+              </div>
             </motion.div>
             
             {/* Modern Action Button */}
@@ -437,62 +447,8 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="flex flex-col gap-4 max-w-4xl mx-auto">
-            {features.map((feature, index) => (
-              <motion.div 
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-              >
-                <Collapsible 
-                  open={openFeatures.includes(index)}
-                  onOpenChange={() => toggleFeature(index)}
-                >
-                  <Card className="bg-gradient-to-b from-gray-900 to-gray-950 border border-gray-800 rounded-xl overflow-hidden hover:border-gray-700 transition-all duration-300">
-                    <CollapsibleTrigger asChild>
-                      <div className="w-full cursor-pointer">
-                        <CardContent className="p-5">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <div className="w-10 h-10 bg-gradient-to-br from-[#3ABCF7] to-[#8B2FF8] rounded-lg flex items-center justify-center">
-                                <feature.icon className="w-5 h-5 text-white" />
-                              </div>
-                              <div>
-                                <h3 className="text-lg font-semibold" style={{ fontFamily: '"Space Grotesk", sans-serif', letterSpacing: '0.01em' }}>
-                                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8]">{feature.title}</span>
-                                </h3>
-                              </div>
-                            </div>
-                            <motion.div
-                              animate={{ rotate: openFeatures.includes(index) ? 180 : 0 }}
-                              transition={{ duration: 0.2 }}
-                            >
-                              <ChevronDown className="w-4 h-4 text-gray-400" />
-                            </motion.div>
-                          </div>
-                        </CardContent>
-                      </div>
-                    </CollapsibleTrigger>
-                    
-                    <CollapsibleContent>
-                      <div className="px-5 pb-5 border-t border-gray-800/50 pt-4">
-                        <div className="space-y-3">
-                          <p className="text-gray-300 text-sm" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
-                            {feature.description}
-                          </p>
-                          <p className="text-gray-400 text-xs leading-relaxed" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
-                            {feature.details}
-                          </p>
-                        </div>
-                      </div>
-                    </CollapsibleContent>
-                  </Card>
-                </Collapsible>
-              </motion.div>
-            ))}
-          </div>
+          {/* Persona-based Features */}
+          <PersonaFeatures />
         </div>
       </section>
 
@@ -511,100 +467,42 @@ const Index = () => {
             </p>
             
             <motion.div
-              className="mt-8 mb-8 flex justify-center"
+              className="mt-8 mb-8 flex flex-col items-center justify-center"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5 }}
             >
-              <ModernTextTransition 
-                texts={[
-                  "CTOs",
-                  "DevOps Engineers",
-                  "SREs",
-                  "Platform Teams",
-                  "IT Teams",
-                  "Cloud Architects"
-                ]}
-              />
+              <div className="mb-2">
+                <span className="text-5xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8] px-8 py-2 rounded-full" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>AI Agents</span>
+              </div>
+              <div className="flex items-center">
+                <span className="mr-2 text-white">for</span>
+                <ModernTextTransition 
+                  texts={[
+                    "CTOs",
+                    "DevOps Engineers",
+                    "SREs",
+                    "Platform Teams",
+                    "IT Teams",
+                    "Cloud Architects"
+                  ]}
+                />
+              </div>
             </motion.div>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-4 mb-16">
-            {useCases.map((useCase, index) => (
-              <Button
-                key={index}
-                variant={activeUseCase === index ? "default" : "outline"}
-                onClick={() => setActiveUseCase(index)}
-                className={`${
-                  activeUseCase === index
-                    ? "btn-futuristic"
-                    : "glass border-white/30 text-white hover:bg-white/10"
-                } transition-all duration-300 text-lg px-8 py-4`}
-                style={{ fontFamily: '"Space Grotesk", sans-serif', letterSpacing: '0.01em' }}
-              >
-                <useCase.icon className="w-5 h-5 mr-2" />
-                {useCase.title}
-              </Button>
-            ))}
-          </div>
+          {/* Ultra Modern Use Cases Table */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+            viewport={{ once: true }}
+            className="mb-16"
+          >
+            <UseCasesTable />
+          </motion.div>
 
-          <Card className="max-w-6xl mx-auto modern-card overflow-hidden">
-            <CardContent className="p-12">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                <div className="space-y-6 text-center">
-                  <div className="flex flex-col items-center justify-center space-y-4">
-                    <motion.div 
-                      className="w-16 h-16 bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8] rounded-xl flex items-center justify-center"
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ duration: 0.5 }}
-                    >
-                      <motion.div
-                        initial={{ rotate: 0 }}
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                      >
-                        <AlertCircle className="w-8 h-8 text-white" />
-                      </motion.div>
-                    </motion.div>
-                    <h4 className="text-xl" style={{ fontFamily: '"Space Grotesk", sans-serif', fontWeight: 600, letterSpacing: '0.01em' }}>
-                      <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8]">Problem</span>
-                    </h4>
-                  </div>
-                  <p className="text-gray-400 leading-relaxed mx-auto" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>{useCases[activeUseCase].problem}</p>
-                </div>
-                <div className="space-y-6 text-center">
-                  <div className="flex flex-col items-center justify-center space-y-4">
-                    <div className="w-16 h-16 bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8] rounded-xl flex items-center justify-center">
-                      <Zap className="w-8 h-8 text-white" />
-                    </div>
-                    <h4 className="text-xl" style={{ fontFamily: '"Space Grotesk", sans-serif', fontWeight: 600, letterSpacing: '0.01em' }}>
-                      <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8]">ZapGap Solution</span>
-                    </h4>
-                  </div>
-                  <p className="text-gray-400 leading-relaxed mx-auto" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>{useCases[activeUseCase].solution}</p>
-                </div>
-                <div className="space-y-6 text-center">
-                  <div className="flex flex-col items-center justify-center space-y-4">
-                    <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-400 rounded-xl flex items-center justify-center">
-                      <Target className="w-8 h-8 text-white" />
-                    </div>
-                    <h4 className="text-xl" style={{ fontFamily: '"Space Grotesk", sans-serif', fontWeight: 600, letterSpacing: '0.01em' }}>
-                      <span className="bg-clip-text text-transparent bg-gradient-to-r from-green-500 to-emerald-400">Impact</span>
-                    </h4>
-                  </div>
-                  <motion.div 
-                    className="text-4xl font-black text-[#3ABCF7] glow-text-blue mt-4"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    {useCases[activeUseCase].impact}
-                  </motion.div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Modern Use Cases Table is now the primary display method for use cases */}
         </div>
       </section>
 
