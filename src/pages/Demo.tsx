@@ -7,6 +7,8 @@ import {
   ArrowLeft, Send, Sparkles, MessageCircle,
   Zap, User, Bot, ChevronRight, AlertCircle, RotateCcw
 } from "lucide-react";
+import { MarkdownRenderer } from "@/components/MarkdownRenderer";
+import { LoadingQuotes } from "@/components/LoadingQuotes";
 
 interface Message {
   id: string;
@@ -315,25 +317,25 @@ const Demo = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-2xl">
                 {[
-                  "How do I deploy to staging?",
-                  "Check AWS costs this month",
-                  "Restart the payment service",
-                  "Show me recent alerts"
+                  "Which is the fastest storage on AWS?",
+                  "What's the difference between EC2 and Lambda?",
+                  "How do I make my app load faster?",
+                  "Which database should I use for my nextjs app?"
                 ].map((suggestion, index) => (
                   <motion.button
-                    key={index}
-                    onClick={() => setInputValue(suggestion)}
-                    className="p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-[#3ABCF7]/50 transition-all duration-300 text-left group"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                  key={index}
+                  onClick={() => setInputValue(suggestion)}
+                  className="p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-[#3ABCF7]/50 transition-all duration-300 text-left group"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-300 group-hover:text-white transition-colors"
-                            style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
-                        {suggestion}
-                      </span>
-                      <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-[#3ABCF7] transition-colors" />
-                    </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-300 group-hover:text-white transition-colors"
+                      style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
+                    {suggestion}
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-[#3ABCF7] transition-colors" />
+                  </div>
                   </motion.button>
                 ))}
               </div>
@@ -377,9 +379,16 @@ const Demo = () => {
                         ? 'bg-red-500/20 border border-red-500/40 text-red-200'
                         : 'bg-white/10 border border-white/20 text-gray-100'
                     }`}>
-                      <p className="text-sm leading-relaxed" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
-                        {message.content}
-                      </p>
+                      {message.sender === 'assistant' && !message.isError ? (
+                        <MarkdownRenderer
+                          content={message.content}
+                          className="text-sm"
+                        />
+                      ) : (
+                        <p className="text-sm leading-relaxed" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
+                          {message.content}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </motion.div>
@@ -387,25 +396,14 @@ const Demo = () => {
             </AnimatePresence>
           )}
 
-          {/* Typing Indicator */}
+          {/* Enhanced Loading State with DevOps Quotes */}
           {isTyping && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="flex justify-start"
             >
-              <div className="flex items-start space-x-3">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8] flex items-center justify-center">
-                  <Bot className="w-4 h-4 text-white" />
-                </div>
-                <div className="bg-white/10 border border-white/20 rounded-2xl px-4 py-3">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  </div>
-                </div>
-              </div>
+              <LoadingQuotes />
             </motion.div>
           )}
           
