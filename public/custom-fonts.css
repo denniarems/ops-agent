@@ -1,0 +1,17 @@
+/* Custom font for AI Agents text */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@800&display=swap');
+
+/* Target AI Agents text specifically */
+span.text-5xl.md\:text-6xl.font-bold.bg-clip-text.text-transparent.bg-gradient-to-r.from-\[#3ABCF7\].to-\[#8B2FF8\].px-8.py-2.rounded-full {
+  font-family: 'Montserrat', sans-serif !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.03em !important;
+  text-shadow: 0 0 10px rgba(58, 188, 247, 0.3) !important;
+}
+
+/* Add a class we can apply directly */
+.montserrat-font {
+  font-family: 'Montserrat', sans-serif !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.03em !important;
+}

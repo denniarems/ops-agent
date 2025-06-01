@@ -523,6 +523,29 @@ html {
 }
 
 /* Typography enhancements */
+/* Custom styling for AI Agents text */
+.ai-agents-title,
+span:has(> span[style*="font-family"]:-webkit-any(:contains("AI Agents"))),
+span[class*="text-5xl"][class*="font-bold"][class*="bg-clip-text"][class*="text-transparent"]:contains("AI Agents"),
+span:contains("AI Agents") {
+  font-family: 'Montserrat', sans-serif !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.03em !important;
+  text-shadow: 0 0 10px rgba(58, 188, 247, 0.3) !important;
+  font-size: 1.875rem !important; /* text-3xl */
+  line-height: 2.25rem !important;
+}
+
+@media (min-width: 768px) {
+  .ai-agents-title,
+  span:has(> span[style*="font-family"]:-webkit-any(:contains("AI Agents"))),
+  span[class*="text-5xl"][class*="font-bold"][class*="bg-clip-text"][class*="text-transparent"]:contains("AI Agents"),
+  span:contains("AI Agents") {
+    font-size: 2.25rem !important; /* text-4xl */
+    line-height: 2.5rem !important;
+  }
+}
+
 .font-display {
   font-family: 'Inter', sans-serif;
   font-weight: 800;
