@@ -343,10 +343,9 @@ const Index = () => {
                 />
               </div>
             </motion.div>
-            
-            {/* Modern Action Button */}
+              {/* Modern Action Buttons */}
             <motion.div 
-              className="flex justify-center mb-16"
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
@@ -365,6 +364,24 @@ const Index = () => {
                   <div className="relative flex items-center justify-center">
                     <Sparkles className="w-5 h-5 mr-3 animate-pulse" />
                     <span>Try Demo</span>
+                  </div>
+                </Button>
+              </motion.div>
+
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                whileTap={{ scale: 0.98 }}
+                className="relative group"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-[#22C55E] to-[#16A34A] rounded-xl blur-xl opacity-70 group-hover:opacity-100 transition-all duration-300 -z-10"></div>
+                <Button
+                  onClick={() => window.open('https://tally.so/r/nWBBrR', '_blank')}
+                  className="w-full md:w-auto bg-gradient-to-r from-[#22C55E] to-[#16A34A] border-0 text-white font-bold rounded-xl px-12 py-7 text-lg shadow-[0_8px_30px_rgba(34,197,94,0.3)] relative overflow-hidden"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#22C55E]/20 to-[#16A34A]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="relative flex items-center justify-center">
+                    <UserPlus className="w-5 h-5 mr-3 animate-pulse" />
+                    <span>Get Whitelisted</span>
                   </div>
                 </Button>
               </motion.div>
@@ -516,108 +533,54 @@ const Index = () => {
         
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.h1 
-            className="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-[#3ABCF7] to-[#7F5AF8]"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+        className="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-[#3ABCF7] to-[#7F5AF8]"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.2 }}
           >
-            <span className="inline-block">Cloud Infrastructure,</span>
-            <br />
-            <motion.span 
-              className="text-white inline-block"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-            >
-              Simplified by AI
-            </motion.span>
+        <span className="inline-block">Cloud Infrastructure,</span>
+        <br />
+        <motion.span 
+          className="text-white inline-block"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+        >
+          Simplified by AI
+        </motion.span>
           </motion.h1>
           <p className="text-2xl text-white/90 mb-12 leading-relaxed">
-            Be among the first to experience the future of cloud operations
+        Be among the first to experience the future of cloud operations
           </p>
-          
-          <form onSubmit={handleWaitlistSubmit} className="flex flex-col sm:flex-row gap-6 max-w-lg mx-auto">
-            <Input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 bg-white/10 border-white/30 text-white placeholder:text-white/60 text-lg py-6 px-6 glass"
-              required
+            <div className="flex justify-center">
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Button 
+            onClick={() => window.open('https://tally.so/r/nWBBrR', '_blank')}
+            className="btn-futuristic text-lg py-6 px-8 relative overflow-hidden group"
+          >
+            <span className="relative z-10 flex items-center justify-center">
+              <UserPlus className="w-5 h-5 mr-3" />
+              Get Whitelisted
+            </span>
+            <span className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+            <motion.span 
+          className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-cyan-400/20 rounded-full"
+          initial={{ scale: 0, opacity: 0.5 }}
+          animate={{ scale: 1.5, opacity: 0 }}
+          transition={{ duration: 1.5, repeat: Infinity, repeatType: "loop" }}
             />
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button className="btn-futuristic w-full sm:w-auto text-lg py-6 px-8 relative overflow-hidden group">
-                <span className="relative z-10">Get Early Access</span>
-                <span className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-                <motion.span 
-                  className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-cyan-400/20 rounded-full"
-                  initial={{ scale: 0, opacity: 0.5 }}
-                  animate={{ scale: 1.5, opacity: 0 }}
-                  transition={{ duration: 1.5, repeat: Infinity, repeatType: "loop" }}
-                />
-              </Button>
-            </motion.div>
-          </form>
+          </Button>
+        </motion.div>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
       <footer className="bg-[#111111] text-white py-16 border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div 
-            className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-12"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-          >
-            <div className="col-span-1 md:col-span-2">
-              <motion.img 
-                src="/lovable-uploads/145c593f-1a1b-45a8-914e-d151ce53c695.png" 
-                alt="ZapGap Logo" 
-                className="h-10 w-auto brightness-0 invert mb-6"
-                initial={{ scale: 1.1, opacity: 0.8 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 1.5 }}
-              />
-              <p className="text-gray-400 max-w-md leading-relaxed">
-                Bridging the gap between complex infrastructure and effortless operations with next-generation AI automation.
-              </p>
+            <div className="border-t border-gray-800 mt-12 pt-8 flex justify-center items-center">
+            <p className="text-gray-400">© 2025 ZapGap. All rights reserved.</p>
             </div>
-            
-            <div>
-              <h4 className="font-bold mb-6 text-[#3ABCF7] text-lg">Product</h4>
-              <ul className="space-y-3 text-gray-400">
-                <li><a href="#platform" className="hover:text-[#3ABCF7] transition-colors">Platform</a></li>
-                <li><a href="#pricing" className="hover:text-[#3ABCF7] transition-colors">Pricing</a></li>
-                <li><a href="#features" className="hover:text-[#3ABCF7] transition-colors">Features</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-bold mb-6 text-[#3ABCF7] text-lg">Company</h4>
-              <ul className="space-y-3 text-gray-400">
-                <li><a href="#company" className="hover:text-[#3ABCF7] transition-colors">About</a></li>
-                <li><a href="#legal" className="hover:text-[#3ABCF7] transition-colors">Legal</a></li>
-                <li><a href="#contact" className="hover:text-[#3ABCF7] transition-colors">Contact</a></li>
-              </ul>
-            </div>
-          </motion.div>
-          
-          <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col sm:flex-row justify-between items-center">
-            <p className="text-gray-400">© 2024 ZapGap. All rights reserved.</p>
-            <div className="flex space-x-6 mt-4 sm:mt-0">
-              <a href="#" className="text-gray-400 hover:text-[#3ABCF7] transition-colors transform hover:scale-110">
-                <Linkedin className="w-6 h-6" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-[#3ABCF7] transition-colors transform hover:scale-110">
-                <Twitter className="w-6 h-6" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-[#3ABCF7] transition-colors transform hover:scale-110">
-                <Github className="w-6 h-6" />
-              </a>
-            </div>
-          </div>
         </div>
       </footer>
     </div>

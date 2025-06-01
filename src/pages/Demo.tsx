@@ -240,7 +240,7 @@ const Demo = () => {
               variant="ghost"
               size="sm"
               onClick={() => navigate('/')}
-              className="text-gray-400 hover:text-white transition-colors"
+              className="text-gray-400"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Home
@@ -268,10 +268,10 @@ const Demo = () => {
             </div>
             {messages.length > 0 && (
               <Button
-                variant="ghost"
+                variant="destructive"
                 size="sm"
                 onClick={handleClearChat}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-black hover:text-white transition-colors"
                 title="Clear chat and start new session"
               >
                 <RotateCcw className="w-4 h-4 mr-2" />
