@@ -53,8 +53,8 @@ export const MarkdownRenderer = ({ content, className, isReply = false }: Markdo
             <p className={cn(
               "mb-2 last:mb-0 leading-relaxed",
               isReply
-                ? "text-gray-50/90 text-sm leading-[1.6]"
-                : "text-gray-100"
+                ? "text-gray-50/90 text-xs sm:text-sm leading-[1.6]"
+                : "text-gray-100 text-xs sm:text-sm"
             )}>
               {children}
             </p>
@@ -63,8 +63,8 @@ export const MarkdownRenderer = ({ content, className, isReply = false }: Markdo
             <ul className={cn(
               "list-disc mb-2 space-y-1",
               isReply
-                ? "list-inside text-gray-50/85 pl-4"
-                : "list-inside text-gray-100"
+                ? "list-inside text-gray-50/85 pl-3 sm:pl-4 text-xs sm:text-sm"
+                : "list-inside text-gray-100 text-xs sm:text-sm"
             )}>
               {children}
             </ul>
@@ -73,8 +73,8 @@ export const MarkdownRenderer = ({ content, className, isReply = false }: Markdo
             <ol className={cn(
               "list-decimal mb-2 space-y-1",
               isReply
-                ? "list-inside text-gray-50/85 pl-4"
-                : "list-inside text-gray-100"
+                ? "list-inside text-gray-50/85 pl-3 sm:pl-4 text-xs sm:text-sm"
+                : "list-inside text-gray-100 text-xs sm:text-sm"
             )}>
               {children}
             </ol>
@@ -82,8 +82,8 @@ export const MarkdownRenderer = ({ content, className, isReply = false }: Markdo
           li: ({ children }) => (
             <li className={cn(
               isReply
-                ? "text-gray-50/85 marker:text-[#3ABCF7]/70"
-                : "text-gray-100"
+                ? "text-gray-50/85 marker:text-[#3ABCF7]/70 text-xs sm:text-sm"
+                : "text-gray-100 text-xs sm:text-sm"
             )}>
               {children}
             </li>
@@ -93,7 +93,7 @@ export const MarkdownRenderer = ({ content, className, isReply = false }: Markdo
             if (isInline) {
               return (
                 <code className={cn(
-                  "px-1.5 py-0.5 rounded text-sm font-mono",
+                  "px-1 py-0.5 sm:px-1.5 rounded text-xs sm:text-sm font-mono",
                   isReply
                     ? "bg-gray-800/80 text-[#3ABCF7] border border-gray-700/50"
                     : "bg-gray-800 text-[#3ABCF7]"
@@ -105,7 +105,7 @@ export const MarkdownRenderer = ({ content, className, isReply = false }: Markdo
             // Block code
             return (
               <code className={cn(
-                "block p-3 rounded-lg text-sm font-mono overflow-x-auto border",
+                "block p-2 sm:p-3 rounded-lg text-xs sm:text-sm font-mono overflow-x-auto border",
                 isReply
                   ? "bg-gray-900/80 text-gray-100 border-gray-700/50 shadow-inner"
                   : "bg-gray-900 text-gray-100 border-gray-700"
@@ -116,7 +116,7 @@ export const MarkdownRenderer = ({ content, className, isReply = false }: Markdo
           },
           pre: ({ children }) => (
             <pre className={cn(
-              "border rounded-lg p-3 mb-3 overflow-x-auto",
+              "border rounded-lg p-2 sm:p-3 mb-2 sm:mb-3 overflow-x-auto text-xs sm:text-sm",
               isReply
                 ? "bg-gray-900/80 border-gray-700/50 shadow-inner"
                 : "bg-gray-900 border-gray-700"

@@ -82,21 +82,21 @@ export const LoadingQuotes = ({ className }: LoadingQuotesProps) => {
   }, []);
 
   return (
-    <div className={`flex items-start space-x-3 ${className}`}>
-      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8] flex items-center justify-center flex-shrink-0">
-        <Bot className="w-4 h-4 text-white" />
+    <div className={`flex items-start space-x-2 sm:space-x-3 max-w-[95%] sm:max-w-[85%] ${className}`}>
+      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8] flex items-center justify-center flex-shrink-0">
+        <Bot className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
       </div>
-      <div className="bg-white/10 border border-white/20 rounded-2xl px-4 py-3 min-h-[60px] flex items-center">
+      <div className="bg-white/10 border border-white/20 rounded-2xl px-3 py-2 sm:px-4 sm:py-3 min-h-[50px] sm:min-h-[60px] flex items-center">
         <div className="flex flex-col space-y-2">
           {/* Typing indicator */}
           <div className="flex space-x-1">
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gray-400 rounded-full animate-bounce"></div>
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
           </div>
-          
+
           {/* Rotating quotes */}
-          <div className="min-h-[24px] flex items-center">
+          <div className="min-h-[20px] sm:min-h-[24px] flex items-center">
             <AnimatePresence mode="wait">
               <motion.p
                 key={currentQuoteIndex}
@@ -104,7 +104,7 @@ export const LoadingQuotes = ({ className }: LoadingQuotesProps) => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
-                className="text-sm text-gray-300 italic"
+                className="text-xs sm:text-sm text-gray-300 italic"
                 style={{ fontFamily: '"Space Grotesk", sans-serif' }}
               >
                 {devOpsQuotes[currentQuoteIndex]}

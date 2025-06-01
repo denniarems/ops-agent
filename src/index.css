@@ -653,6 +653,56 @@ span:contains("AI Agents") {
   animation: message-slide-in 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
+/* Mobile-specific chat improvements */
+@media (max-width: 768px) {
+  /* Improve touch targets for mobile */
+  .chat-input-mobile {
+    min-height: 44px;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+
+  /* Optimize message bubbles for mobile */
+  .chat-message-mobile {
+    max-width: 95%;
+  }
+
+  /* Improve scrolling performance on mobile */
+  .chat-container-mobile {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Reduce motion for better mobile performance */
+  @media (prefers-reduced-motion: reduce) {
+    .chat-message-enter {
+      animation: none;
+    }
+  }
+
+  /* Optimize text rendering for mobile */
+  .mobile-text-optimize {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Improve button touch targets */
+  .mobile-touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Optimize spacing for mobile */
+  .mobile-spacing {
+    padding: 0.75rem;
+  }
+
+  /* Improve keyboard interaction */
+  .mobile-input-focus:focus {
+    transform: none; /* Prevent zoom on focus */
+  }
+}
+
 /* Typing indicator enhancement */
 @keyframes typing-dot {
   0%, 60%, 100% {
