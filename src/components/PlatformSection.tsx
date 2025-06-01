@@ -7,9 +7,9 @@ export const PlatformSection = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-20">
           <h2 className="text-5xl mb-6 relative" style={{ fontFamily: '"Space Grotesk", sans-serif', fontWeight: 700, letterSpacing: '0.02em' }}>
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-text-shimmer bg-[length:200%_auto] relative">AI-Powered Cloud Platform
+            <span className="bg-clip-text text-transparent bg-linear-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-text-shimmer bg-size-[200%_auto] relative">AI-Powered Cloud Platform
               {/* Light ray animation */}
-              <div className="absolute bottom-[-8px] left-0 right-0 h-[2px] bg-gradient-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-[light-ray_3s_ease-in-out_infinite]" style={{ transformOrigin: 'left center' }}></div>
+              <div className="absolute bottom-[-8px] left-0 right-0 h-[2px] bg-linear-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-[light-ray_3s_ease-in-out_infinite]" style={{ transformOrigin: 'left center' }}></div>
             </span>
           </h2>
           <p className="text-xl text-gray-400 max-w-3xl mx-auto" style={{ fontFamily: '"Space Grotesk", sans-serif', letterSpacing: '0.01em' }}>
@@ -39,18 +39,18 @@ export const PlatformSection = () => {
               <div className="relative mb-20">
                 <div className="relative z-20 mx-auto w-64">
                   {/* Glow effect */}
-                  <div className="absolute -inset-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl blur-xl opacity-40"></div>
+                  <div className="absolute -inset-4 bg-linear-to-r from-blue-600 to-purple-600 rounded-3xl blur-xl opacity-40"></div>
                   
                   {/* Card */}
                   <div className="relative bg-gray-900/90 border border-white/10 rounded-2xl p-6 text-center">
                     {/* Icon */}
-                    <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mb-4">
+                    <div className="w-16 h-16 mx-auto bg-linear-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mb-4">
                       <Cpu className="w-8 h-8 text-white" />
                     </div>
                     
                     {/* Content */}
                     <h3 className="text-xl font-bold mb-2" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
-                      <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">Central Orchestrator</span>
+                      <span className="bg-clip-text text-transparent bg-linear-to-r from-blue-400 to-purple-500">Central Orchestrator</span>
                     </h3>
                     <p className="text-gray-300 text-sm" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
                       The AI brain that interprets requests, consults context, and orchestrates execution
@@ -71,8 +71,8 @@ export const PlatformSection = () => {
                 </div>
                 
                 {/* Single connection line from orchestrator to box */}
-                <div className="absolute top-[150px] left-1/2 w-[3px] h-[40px] bg-gradient-to-b from-blue-500 to-violet-600 transform -translate-x-1/2 z-10"></div>
-                <div className="absolute top-[150px] left-1/2 w-[8px] h-[40px] bg-gradient-to-b from-blue-500/30 to-violet-600/30 blur-[5px] transform -translate-x-1/2 z-9"></div>
+                <div className="absolute top-[150px] left-1/2 w-[3px] h-[40px] bg-linear-to-b from-blue-500 to-violet-600 transform -translate-x-1/2 z-10"></div>
+                <div className="absolute top-[150px] left-1/2 w-[8px] h-[40px] bg-linear-to-b from-blue-500/30 to-violet-600/30 blur-[5px] transform -translate-x-1/2 z-9"></div>
               </div>
               
               {/* Top Row Components */}
@@ -102,7 +102,7 @@ export const PlatformSection = () => {
                 ].map((feature, index) => (
                   <div key={index} className="group relative">
                     {/* Glow effect */}
-                    <div className="absolute -inset-1 -bottom-4 bg-gradient-to-b from-transparent via-blue-600/20 to-blue-600/30 rounded-2xl blur-lg opacity-75"></div>
+                    <div className="absolute -inset-1 -bottom-4 bg-linear-to-b from-transparent via-blue-600/20 to-blue-600/30 rounded-2xl blur-lg opacity-75"></div>
                     
                     {/* Card */}
                     <div className="relative bg-gray-900/90 border border-white/10 rounded-2xl p-5 h-full">
@@ -112,7 +112,7 @@ export const PlatformSection = () => {
                       {/* Content */}
                       <div className="flex items-start">
                         {/* Icon */}
-                        <div className={`flex-shrink-0 w-12 h-12 bg-gradient-to-br ${feature.color} rounded-lg p-0.5 mr-4`}>
+                        <div className={`shrink-0 w-12 h-12 bg-linear-to-br ${feature.color} rounded-lg p-0.5 mr-4`}>
                           <div className="w-full h-full bg-gray-900 rounded-[6px] flex items-center justify-center">
                             <feature.icon className="w-6 h-6 text-white" />
                           </div>
@@ -121,7 +121,7 @@ export const PlatformSection = () => {
                         <div>
                           {/* Title */}
                           <h3 className="text-lg font-bold mb-1" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
-                            <span className={`bg-clip-text text-transparent bg-gradient-to-r ${feature.color}`}>
+                            <span className={`bg-clip-text text-transparent bg-linear-to-r ${feature.color}`}>
                               {feature.title}
                             </span>
                           </h3>
@@ -173,7 +173,7 @@ export const PlatformSection = () => {
                       {/* Content */}
                       <div className="flex items-start">
                         {/* Icon */}
-                        <div className={`flex-shrink-0 w-12 h-12 bg-gradient-to-br ${feature.color} rounded-lg p-0.5 mr-4`}>
+                        <div className={`shrink-0 w-12 h-12 bg-linear-to-br ${feature.color} rounded-lg p-0.5 mr-4`}>
                           <div className="w-full h-full bg-gray-900 rounded-[6px] flex items-center justify-center">
                             <feature.icon className="w-6 h-6 text-white" />
                           </div>
@@ -182,7 +182,7 @@ export const PlatformSection = () => {
                         <div>
                           {/* Title */}
                           <h3 className="text-lg font-bold mb-1" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
-                            <span className={`bg-clip-text text-transparent bg-gradient-to-r ${feature.color}`}>
+                            <span className={`bg-clip-text text-transparent bg-linear-to-r ${feature.color}`}>
                               {feature.title}
                             </span>
                           </h3>
@@ -219,9 +219,9 @@ export const PlatformSection = () => {
 
           <div className="text-center mb-16 relative z-10">
             <h2 className="text-4xl mb-6 relative" style={{ fontFamily: '"Space Grotesk", sans-serif', fontWeight: 700, letterSpacing: '0.02em' }}>
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-text-shimmer bg-[length:200%_auto] relative">Key Platform Components
+              <span className="bg-clip-text text-transparent bg-linear-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-text-shimmer bg-size-[200%_auto] relative">Key Platform Components
                 {/* Light ray animation */}
-                <div className="absolute bottom-[-8px] left-0 right-0 h-[2px] bg-gradient-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-[light-ray_3s_ease-in-out_infinite]" style={{ transformOrigin: 'left center' }}></div>
+                <div className="absolute bottom-[-8px] left-0 right-0 h-[2px] bg-linear-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-[light-ray_3s_ease-in-out_infinite]" style={{ transformOrigin: 'left center' }}></div>
               </span>
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto mb-8" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
@@ -264,13 +264,13 @@ export const PlatformSection = () => {
                 {/* Glass card with backdrop filter */}
                 <div className="relative h-full backdrop-blur-md bg-gray-900/40 border border-gray-800/50 rounded-2xl overflow-hidden transition-all duration-500 hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] group-hover:border-gray-700/80">
                   {/* Gradient overlay */}
-                  <div className={`absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500 bg-gradient-to-br ${component.color}`}></div>
+                  <div className={`absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500 bg-linear-to-br ${component.color}`}></div>
                   
                   {/* Card content */}
                   <div className="p-8 relative z-10">
                     <div className="flex items-start mb-6">
                       {/* Icon with gradient background */}
-                      <div className={`flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-br ${component.color} p-0.5 mr-5 shadow-lg`}>
+                      <div className={`shrink-0 w-14 h-14 rounded-xl bg-linear-to-br ${component.color} p-0.5 mr-5 shadow-lg`}>
                         <div className="w-full h-full bg-gray-900 rounded-[10px] flex items-center justify-center">
                           <component.icon className="w-6 h-6 text-white" />
                         </div>
@@ -278,7 +278,7 @@ export const PlatformSection = () => {
                       
                       {/* Title */}
                       <h3 className="text-2xl font-bold" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
-                        <span className={`bg-clip-text text-transparent bg-gradient-to-r ${component.color}`}>
+                        <span className={`bg-clip-text text-transparent bg-linear-to-r ${component.color}`}>
                           {component.title}
                         </span>
                       </h3>
@@ -293,7 +293,7 @@ export const PlatformSection = () => {
                     <div className="space-y-3">
                       {component.features.map((feature, idx) => (
                         <div key={idx} className="flex items-center text-gray-200" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
-                          <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${component.color} mr-3`}></div>
+                          <div className={`w-1.5 h-1.5 rounded-full bg-linear-to-r ${component.color} mr-3`}></div>
                           <span className="group-hover:text-white transition-colors duration-300">{feature}</span>
                         </div>
                       ))}
@@ -301,7 +301,7 @@ export const PlatformSection = () => {
                     
                     {/* Hover effect - subtle glow */}
                     <div className="absolute bottom-0 left-0 right-0 h-1 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-                      <div className={`h-full bg-gradient-to-r ${component.color} blur-sm`}></div>
+                      <div className={`h-full bg-linear-to-r ${component.color} blur-sm`}></div>
                     </div>
                   </div>
                 </div>
@@ -312,12 +312,12 @@ export const PlatformSection = () => {
           {/* Scalability & Resilience - Full width card with different style */}
           <div className="mt-8 relative z-10">
             <div className="backdrop-blur-md bg-gray-900/40 border border-gray-800/50 rounded-2xl overflow-hidden transition-all duration-500 hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] group hover:border-gray-700/80">
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 bg-gradient-to-br from-teal-400 to-emerald-600"></div>
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 bg-linear-to-br from-teal-400 to-emerald-600"></div>
               
               <div className="p-8 relative z-10">
                 <div className="flex flex-col md:flex-row items-start md:items-center mb-6">
                   {/* Icon with gradient background */}
-                  <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-br from-teal-400 to-emerald-600 p-0.5 mb-4 md:mb-0 md:mr-5 shadow-lg">
+                  <div className="shrink-0 w-14 h-14 rounded-xl bg-linear-to-br from-teal-400 to-emerald-600 p-0.5 mb-4 md:mb-0 md:mr-5 shadow-lg">
                     <div className="w-full h-full bg-gray-900 rounded-[10px] flex items-center justify-center">
                       <Scale className="w-6 h-6 text-white" />
                     </div>
@@ -326,7 +326,7 @@ export const PlatformSection = () => {
                   {/* Title */}
                   <div>
                     <h3 className="text-2xl font-bold" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
-                      <span className="bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-emerald-600">
+                      <span className="bg-clip-text text-transparent bg-linear-to-r from-teal-400 to-emerald-600">
                         Scalability & Resilience
                       </span>
                     </h3>
@@ -340,7 +340,7 @@ export const PlatformSection = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                   {["Auto-scaling architecture", "High availability", "Fault tolerance"].map((feature, idx) => (
                     <div key={idx} className="flex items-center text-gray-200 bg-gray-800/30 backdrop-blur-sm rounded-lg p-3 hover:bg-gray-800/50 transition-colors duration-300" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
-                      <div className="w-2 h-2 rounded-full bg-gradient-to-r from-teal-400 to-emerald-600 mr-3"></div>
+                      <div className="w-2 h-2 rounded-full bg-linear-to-r from-teal-400 to-emerald-600 mr-3"></div>
                       <span className="group-hover:text-white transition-colors duration-300">{feature}</span>
                     </div>
                   ))}

@@ -84,7 +84,7 @@ export const NewFeaturesSection = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-20">
           <h2 className="text-5xl mb-6" style={{ fontFamily: '"Space Grotesk", sans-serif', fontWeight: 700, letterSpacing: '0.02em' }}>
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-text-shimmer bg-[length:200%_auto]">Features</span>
+            <span className="bg-clip-text text-transparent bg-linear-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-text-shimmer bg-size-[200%_auto]">Features</span>
           </h2>
           <p className="text-xl text-gray-400 max-w-3xl mx-auto" style={{ fontFamily: '"Space Grotesk", sans-serif', letterSpacing: '0.01em' }}>
             ZapGap brings AI-powered intelligence to your cloud operations with these powerful capabilities
@@ -112,14 +112,14 @@ export const NewFeaturesSection = () => {
                 <CardContent className="p-8">
                   <div className="flex flex-col items-center text-center space-y-6">
                     <div className="relative">
-                      <div className="w-16 h-16 bg-gradient-to-br from-[#3ABCF7] to-[#8B2FF8] rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                      <div className="w-16 h-16 bg-linear-to-br from-[#3ABCF7] to-[#8B2FF8] rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
                         <feature.icon className="w-8 h-8 text-white" />
                       </div>
-                      <div className="absolute inset-0 bg-gradient-to-br from-[#3ABCF7] to-[#8B2FF8] rounded-2xl blur-xl opacity-0 group-hover:opacity-40 transition-opacity duration-500"></div>
+                      <div className="absolute inset-0 bg-linear-to-br from-[#3ABCF7] to-[#8B2FF8] rounded-2xl blur-xl opacity-0 group-hover:opacity-40 transition-opacity duration-500"></div>
                     </div>
                     <div>
                       <h3 className="text-2xl mb-4" style={{ fontFamily: '"Space Grotesk", sans-serif', fontWeight: 600, letterSpacing: '0.01em' }}>
-                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8]">{feature.title}</span>
+                        <span className="bg-clip-text text-transparent bg-linear-to-r from-[#3ABCF7] to-[#8B2FF8]">{feature.title}</span>
                       </h3>
                       <p className="text-gray-300 mb-4" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
                         {feature.description}

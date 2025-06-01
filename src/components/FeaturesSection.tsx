@@ -82,11 +82,11 @@ export const FeaturesSection = () => {
     <section id="features" className="py-32 relative overflow-hidden">
       {/* Background elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_rgba(59,130,246,0.1),_transparent_50%),radial-gradient(ellipse_at_bottom_left,_rgba(139,92,246,0.1),_transparent_50%)]" />
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,rgba(59,130,246,0.1),transparent_50%),radial-gradient(ellipse_at_bottom_left,rgba(139,92,246,0.1),transparent_50%)]" />
         <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] rounded-full border border-blue-500/5 animate-[spin_120s_linear_infinite]"></div>
         <div className="absolute bottom-1/3 left-1/4 w-[300px] h-[300px] rounded-full border border-purple-500/5 animate-[spin_90s_linear_infinite_reverse]"></div>
-        <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-black to-transparent"></div>
-        <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-black to-transparent"></div>
+        <div className="absolute top-0 left-0 w-full h-20 bg-linear-to-b from-black to-transparent"></div>
+        <div className="absolute bottom-0 left-0 w-full h-20 bg-linear-to-t from-black to-transparent"></div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -96,9 +96,9 @@ export const FeaturesSection = () => {
             <div className="text-[150px] font-black text-gray-900/5 select-none" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>FEATURES</div>
           </div>
           <h2 className="text-6xl mb-6 relative" style={{ fontFamily: '"Space Grotesk", sans-serif', fontWeight: 700, letterSpacing: '0.02em' }}>
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-text-shimmer bg-[length:200%_auto]">Features</span>
+            <span className="bg-clip-text text-transparent bg-linear-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-text-shimmer bg-size-[200%_auto]">Features</span>
             {/* Underline effect */}
-            <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-40 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+            <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-40 h-1 bg-linear-to-r from-blue-500 via-purple-500 to-pink-500"></div>
           </h2>
           <p className="text-xl text-gray-400 max-w-3xl mx-auto mt-8" style={{ fontFamily: '"Space Grotesk", sans-serif', letterSpacing: '0.01em' }}>
             ZapGap brings AI-powered intelligence to your cloud operations with these powerful capabilities
@@ -125,7 +125,7 @@ export const FeaturesSection = () => {
               {/* Feature card with neo-brutalism style */}
               <div className="relative bg-black/40 backdrop-blur-xl rounded-3xl overflow-hidden border-t border-white/10 shadow-[0_10px_50px_rgba(0,0,0,0.5)]">
                 {/* Glowing accent line based on feature color */}
-                <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${feature.gradient}`}></div>
+                <div className={`absolute top-0 left-0 w-full h-1 bg-linear-to-r ${feature.gradient}`}></div>
                 
                 {/* Subtle grid pattern */}
                 <div className="absolute inset-0 opacity-5">
@@ -135,9 +135,9 @@ export const FeaturesSection = () => {
                 <div className="p-10 md:p-12 relative z-10">
                   <div className="flex flex-col md:flex-row items-center md:items-start gap-10">
                     {/* Icon with 3D effect */}
-                    <div className="flex-shrink-0 relative group">
-                      <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${feature.gradient} blur-lg opacity-70 group-hover:opacity-100 transition-opacity duration-500`}></div>
-                      <div className={`relative w-24 h-24 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center transform group-hover:scale-105 transition-transform duration-500`}>
+                    <div className="shrink-0 relative group">
+                      <div className={`absolute inset-0 rounded-2xl bg-linear-to-br ${feature.gradient} blur-lg opacity-70 group-hover:opacity-100 transition-opacity duration-500`}></div>
+                      <div className={`relative w-24 h-24 rounded-2xl bg-linear-to-br ${feature.gradient} flex items-center justify-center transform group-hover:scale-105 transition-transform duration-500`}>
                         <div className="absolute inset-[3px] bg-gray-900 rounded-xl flex items-center justify-center">
                           <feature.icon className="w-12 h-12 text-white" />
                         </div>
@@ -147,7 +147,7 @@ export const FeaturesSection = () => {
                     {/* Content with enhanced typography */}
                     <div className="flex-1 text-center md:text-left">
                       <h3 className="text-3xl mb-6" style={{ fontFamily: '"Space Grotesk", sans-serif', fontWeight: 700, letterSpacing: '0.01em' }}>
-                        <span className={`bg-clip-text text-transparent bg-gradient-to-r ${feature.gradient}`}>
+                        <span className={`bg-clip-text text-transparent bg-linear-to-r ${feature.gradient}`}>
                           {feature.title}
                         </span>
                       </h3>
@@ -163,7 +163,7 @@ export const FeaturesSection = () => {
                 
                 {/* Decorative corner accent */}
                 <div className="absolute top-0 right-0 w-16 h-16 overflow-hidden">
-                  <div className={`absolute top-0 right-0 w-32 h-32 -mt-16 -mr-16 transform rotate-45 bg-gradient-to-r ${feature.gradient} opacity-80`}></div>
+                  <div className={`absolute top-0 right-0 w-32 h-32 -mt-16 -mr-16 transform rotate-45 bg-linear-to-r ${feature.gradient} opacity-80`}></div>
                 </div>
               </div>
               
@@ -172,7 +172,7 @@ export const FeaturesSection = () => {
                 <div className="relative">
                   <div className="text-8xl font-black opacity-5" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>{index + 1}</div>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${feature.gradient} flex items-center justify-center`}>
+                    <div className={`w-12 h-12 rounded-full bg-linear-to-br ${feature.gradient} flex items-center justify-center`}>
                       <span className="text-white font-bold">{index + 1}</span>
                     </div>
                   </div>

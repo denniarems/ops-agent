@@ -34,7 +34,7 @@ const ModernTextTransition = ({ texts }: { texts: string[] }) => {
   return (
     <div className="text-center">
       <div className="text-3xl md:text-4xl lg:text-5xl font-display font-extrabold mb-2">
-        <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-text-shimmer bg-[length:200%_auto] drop-shadow-[0_0_8px_rgba(58,188,247,0.5)]">AI Agents</span>
+        <span className="bg-clip-text text-transparent bg-linear-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-text-shimmer bg-size-[200%_auto] drop-shadow-[0_0_8px_rgba(58,188,247,0.5)]">AI Agents</span>
       </div>
       <div className="font-mono text-xl md:text-2xl lg:text-2xl text-white flex items-center justify-center h-8 overflow-hidden">
         <span className="mr-2">for</span>
@@ -189,9 +189,9 @@ const Index = () => {
     <div className="min-h-screen bg-black text-white overflow-x-hidden relative">
       {/* Background gradient elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 opacity-50">
-        <div className="absolute top-[-300px] right-[-300px] w-[600px] h-[600px] rounded-full bg-gradient-to-r from-purple-700/30 to-blue-700/20 blur-[120px] animate-pulse" style={{ animationDuration: '8s' }}></div>
-        <div className="absolute bottom-[-200px] left-[-200px] w-[500px] h-[500px] rounded-full bg-gradient-to-r from-cyan-700/20 to-teal-700/10 blur-[100px] animate-pulse" style={{ animationDuration: '10s' }}></div>
-        <div className="absolute top-[30%] left-[40%] w-[400px] h-[400px] rounded-full bg-gradient-to-r from-pink-700/15 to-red-700/10 blur-[80px] animate-pulse" style={{ animationDuration: '12s' }}></div>
+        <div className="absolute top-[-300px] right-[-300px] w-[600px] h-[600px] rounded-full bg-linear-to-r from-purple-700/30 to-blue-700/20 blur-[120px] animate-pulse" style={{ animationDuration: '8s' }}></div>
+        <div className="absolute bottom-[-200px] left-[-200px] w-[500px] h-[500px] rounded-full bg-linear-to-r from-cyan-700/20 to-teal-700/10 blur-[100px] animate-pulse" style={{ animationDuration: '10s' }}></div>
+        <div className="absolute top-[30%] left-[40%] w-[400px] h-[400px] rounded-full bg-linear-to-r from-pink-700/15 to-red-700/10 blur-[80px] animate-pulse" style={{ animationDuration: '12s' }}></div>
       </div>
       {/* Header */}
       <motion.header 
@@ -210,7 +210,7 @@ const Index = () => {
               transition={{ type: "spring", stiffness: 300 }}
             >
               <div className="relative">
-                <div className="absolute -inset-3 bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8] rounded-full blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse-slow"></div>
+                <div className="absolute -inset-3 bg-linear-to-r from-[#3ABCF7] to-[#8B2FF8] rounded-full blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse-slow"></div>
                 <motion.img 
                   src="/lovable-uploads/145c593f-1a1b-45a8-914e-d151ce53c695.png" 
                   alt="ZapGap Logo" 
@@ -234,7 +234,7 @@ const Index = () => {
                   className="relative px-4 py-2 text-gray-300 hover:text-white group overflow-hidden rounded-full transition-all duration-300"
                   style={{ fontFamily: '"Space Grotesk", sans-serif', letterSpacing: '0.01em' }}
                 >
-                  <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-[#3ABCF7]/20 to-[#8B2FF8]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full"></span>
+                  <span className="absolute inset-0 w-full h-full bg-linear-to-r from-[#3ABCF7]/20 to-[#8B2FF8]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full"></span>
                   <span className="relative font-medium">{item.name}</span>
                 </a>
               ))}
@@ -253,12 +253,12 @@ const Index = () => {
           {/* Neural network nodes */}
           <div className="absolute w-full h-full">
             {/* Static nodes */}
-            <div className="absolute top-[15%] left-[20%] w-4 h-4 bg-gradient-to-r from-[#3ABCF7] to-[#5B7CF7] rounded-full blur-[2px] opacity-40 animate-[neural-pulse_2s_ease-in-out_infinite]"></div>
-            <div className="absolute top-[30%] left-[40%] w-5 h-5 bg-gradient-to-r from-[#5B7CF7] to-[#8B2FF8] rounded-full blur-[2px] opacity-35 animate-[neural-pulse_2.5s_ease-in-out_infinite_0.5s]"></div>
-            <div className="absolute top-[60%] left-[25%] w-3 h-3 bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8] rounded-full blur-[2px] opacity-40 animate-[neural-pulse_1.8s_ease-in-out_infinite_0.5s]"></div>
-            <div className="absolute top-[20%] left-[70%] w-4 h-4 bg-gradient-to-r from-[#3ABCF7] to-[#5B7CF7] rounded-full blur-[2px] opacity-35 animate-[neural-pulse_2.2s_ease-in-out_infinite_0.7s]"></div>
-            <div className="absolute top-[70%] left-[65%] w-5 h-5 bg-gradient-to-r from-[#5B7CF7] to-[#8B2FF8] rounded-full blur-[2px] opacity-40 animate-[neural-pulse_2.4s_ease-in-out_infinite_0.2s]"></div>
-            <div className="absolute top-[45%] left-[80%] w-3 h-3 bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8] rounded-full blur-[2px] opacity-35 animate-[neural-pulse_1.9s_ease-in-out_infinite_0.4s]"></div>
+            <div className="absolute top-[15%] left-[20%] w-4 h-4 bg-linear-to-r from-[#3ABCF7] to-[#5B7CF7] rounded-full blur-[2px] opacity-40 animate-[neural-pulse_2s_ease-in-out_infinite]"></div>
+            <div className="absolute top-[30%] left-[40%] w-5 h-5 bg-linear-to-r from-[#5B7CF7] to-[#8B2FF8] rounded-full blur-[2px] opacity-35 animate-[neural-pulse_2.5s_ease-in-out_infinite_0.5s]"></div>
+            <div className="absolute top-[60%] left-[25%] w-3 h-3 bg-linear-to-r from-[#3ABCF7] to-[#8B2FF8] rounded-full blur-[2px] opacity-40 animate-[neural-pulse_1.8s_ease-in-out_infinite_0.5s]"></div>
+            <div className="absolute top-[20%] left-[70%] w-4 h-4 bg-linear-to-r from-[#3ABCF7] to-[#5B7CF7] rounded-full blur-[2px] opacity-35 animate-[neural-pulse_2.2s_ease-in-out_infinite_0.7s]"></div>
+            <div className="absolute top-[70%] left-[65%] w-5 h-5 bg-linear-to-r from-[#5B7CF7] to-[#8B2FF8] rounded-full blur-[2px] opacity-40 animate-[neural-pulse_2.4s_ease-in-out_infinite_0.2s]"></div>
+            <div className="absolute top-[45%] left-[80%] w-3 h-3 bg-linear-to-r from-[#3ABCF7] to-[#8B2FF8] rounded-full blur-[2px] opacity-35 animate-[neural-pulse_1.9s_ease-in-out_infinite_0.4s]"></div>
             
             {/* Moving nodes */}
             <div className="absolute top-[25%] w-3 h-3 bg-[#3ABCF7] rounded-full blur-[2px] opacity-40 animate-[neural-travel_15s_linear_infinite]" style={{['--start-x' as string]: '-5%', ['--end-x' as string]: '105%'}}></div>
@@ -267,8 +267,8 @@ const Index = () => {
             <div className="absolute top-[35%] w-2 h-2 bg-[#3ABCF7] rounded-full blur-[2px] opacity-35 animate-[neural-travel_14s_linear_infinite_6s]" style={{['--start-x' as string]: '105%', ['--end-x' as string]: '-5%'}}></div>
             
             {/* Floating nodes with glow */}
-            <div className="absolute top-[40%] left-[50%] w-6 h-6 bg-gradient-to-r from-[#3ABCF7]/30 to-[#8B2FF8]/30 rounded-full blur-md animate-[neural-glow_3s_ease-in-out_infinite] animate-[neural-float_20s_ease-in-out_infinite]" style={{['--float-x1' as string]: '50px', ['--float-y1' as string]: '-30px', ['--float-x2' as string]: '-40px', ['--float-y2' as string]: '20px', ['--float-x3' as string]: '20px', ['--float-y3' as string]: '40px'}}></div>
-            <div className="absolute top-[65%] left-[40%] w-5 h-5 bg-gradient-to-r from-[#5B7CF7]/30 to-[#3ABCF7]/30 rounded-full blur-md animate-[neural-glow_4s_ease-in-out_infinite_1s] animate-[neural-float_25s_ease-in-out_infinite_2s]" style={{['--float-x1' as string]: '-60px', ['--float-y1' as string]: '-20px', ['--float-x2' as string]: '30px', ['--float-y2' as string]: '40px', ['--float-x3' as string]: '-20px', ['--float-y3' as string]: '-30px'}}></div>
+            <div className="absolute top-[40%] left-[50%] w-6 h-6 bg-linear-to-r from-[#3ABCF7]/30 to-[#8B2FF8]/30 rounded-full blur-md animate-[neural-glow_3s_ease-in-out_infinite] animate-[neural-float_20s_ease-in-out_infinite]" style={{['--float-x1' as string]: '50px', ['--float-y1' as string]: '-30px', ['--float-x2' as string]: '-40px', ['--float-y2' as string]: '20px', ['--float-x3' as string]: '20px', ['--float-y3' as string]: '40px'}}></div>
+            <div className="absolute top-[65%] left-[40%] w-5 h-5 bg-linear-to-r from-[#5B7CF7]/30 to-[#3ABCF7]/30 rounded-full blur-md animate-[neural-glow_4s_ease-in-out_infinite_1s] animate-[neural-float_25s_ease-in-out_infinite_2s]" style={{['--float-x1' as string]: '-60px', ['--float-y1' as string]: '-20px', ['--float-x2' as string]: '30px', ['--float-y2' as string]: '40px', ['--float-x3' as string]: '-20px', ['--float-y3' as string]: '-30px'}}></div>
           </div>
           
           {/* Neural connections */}
@@ -292,10 +292,10 @@ const Index = () => {
           
           {/* Moving connection lines */}
           <div className="absolute inset-0">
-            <div className="absolute top-[25%] h-[0.5px] w-full bg-gradient-to-r from-transparent via-[#3ABCF7]/40 to-transparent animate-[neural-travel_15s_linear_infinite]" style={{['--start-x' as string]: '-100%', ['--end-x' as string]: '100%'}}></div>
-            <div className="absolute top-[55%] h-[0.5px] w-full bg-gradient-to-r from-transparent via-[#5B7CF7]/40 to-transparent animate-[neural-travel_12s_linear_infinite_2s]" style={{['--start-x' as string]: '100%', ['--end-x' as string]: '-100%'}}></div>
-            <div className="absolute top-[75%] h-[0.5px] w-full bg-gradient-to-r from-transparent via-[#8B2FF8]/40 to-transparent animate-[neural-travel_18s_linear_infinite_4s]" style={{['--start-x' as string]: '-100%', ['--end-x' as string]: '100%'}}></div>
-            <div className="absolute top-[35%] h-[0.5px] w-full bg-gradient-to-r from-transparent via-[#3ABCF7]/40 to-transparent animate-[neural-travel_14s_linear_infinite_6s]" style={{['--start-x' as string]: '100%', ['--end-x' as string]: '-100%'}}></div>
+            <div className="absolute top-[25%] h-[0.5px] w-full bg-linear-to-r from-transparent via-[#3ABCF7]/40 to-transparent animate-[neural-travel_15s_linear_infinite]" style={{['--start-x' as string]: '-100%', ['--end-x' as string]: '100%'}}></div>
+            <div className="absolute top-[55%] h-[0.5px] w-full bg-linear-to-r from-transparent via-[#5B7CF7]/40 to-transparent animate-[neural-travel_12s_linear_infinite_2s]" style={{['--start-x' as string]: '100%', ['--end-x' as string]: '-100%'}}></div>
+            <div className="absolute top-[75%] h-[0.5px] w-full bg-linear-to-r from-transparent via-[#8B2FF8]/40 to-transparent animate-[neural-travel_18s_linear_infinite_4s]" style={{['--start-x' as string]: '-100%', ['--end-x' as string]: '100%'}}></div>
+            <div className="absolute top-[35%] h-[0.5px] w-full bg-linear-to-r from-transparent via-[#3ABCF7]/40 to-transparent animate-[neural-travel_14s_linear_infinite_6s]" style={{['--start-x' as string]: '100%', ['--end-x' as string]: '-100%'}}></div>
           </div>
         </div>
 
@@ -303,9 +303,9 @@ const Index = () => {
           <div className="max-w-5xl mx-auto">
             <div className="animate-slide-up">
               <div className="text-4xl md:text-6xl mb-8 relative" style={{ fontFamily: '"Space Grotesk", sans-serif', fontWeight: 700, letterSpacing: '0.02em' }}>
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-text-shimmer bg-[length:200%_auto]">Zap the Gap of Your Infrastructure</span>
+                <span className="bg-clip-text text-transparent bg-linear-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-text-shimmer bg-size-[200%_auto]">Zap the Gap of Your Infrastructure</span>
                 {/* Light ray animation */}
-                <div className="absolute bottom-[-8px] h-[2px] bg-gradient-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-[light-ray_3s_ease-in-out_infinite]" style={{ transformOrigin: 'left center' }}></div>
+                <div className="absolute bottom-[-8px] h-[2px] bg-linear-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-[light-ray_3s_ease-in-out_infinite]" style={{ transformOrigin: 'left center' }}></div>
               </div>
             </div>
             
@@ -344,11 +344,11 @@ const Index = () => {
                 whileTap={{ scale: 0.98 }}
                 className="relative group"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8] rounded-xl blur-xl opacity-70 group-hover:opacity-100 transition-all duration-300 -z-10"></div>
+                <div className="absolute inset-0 bg-linear-to-r from-[#3ABCF7] to-[#8B2FF8] rounded-xl blur-xl opacity-70 group-hover:opacity-100 transition-all duration-300 -z-10"></div>
                 <Button 
-                  className="w-full md:w-auto bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8] border-0 text-white font-bold rounded-xl px-12 py-7 text-lg shadow-[0_8px_30px_rgba(139,47,248,0.3)] relative overflow-hidden"
+                  className="w-full md:w-auto bg-linear-to-r from-[#3ABCF7] to-[#8B2FF8] border-0 text-white font-bold rounded-xl px-12 py-7 text-lg shadow-[0_8px_30px_rgba(139,47,248,0.3)] relative overflow-hidden"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#3ABCF7]/20 to-[#8B2FF8]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 bg-linear-to-r from-[#3ABCF7]/20 to-[#8B2FF8]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <div className="relative flex items-center justify-center">
                     <Sparkles className="w-5 h-5 mr-3 animate-pulse" />
                     <span>Join the Waitlist</span>
@@ -420,9 +420,9 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-20">
             <h2 className="text-4xl mb-6 relative" style={{ fontFamily: '"Space Grotesk", sans-serif', fontWeight: 700, letterSpacing: '0.02em' }}>
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-text-shimmer bg-[length:200%_auto] relative">Features
+              <span className="bg-clip-text text-transparent bg-linear-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-text-shimmer bg-size-[200%_auto] relative">Features
                 {/* Light ray animation */}
-                <div className="absolute bottom-[-8px] left-0 right-0 h-[2px] bg-gradient-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-[light-ray_3s_ease-in-out_infinite]" style={{ transformOrigin: 'left center' }}></div>
+                <div className="absolute bottom-[-8px] left-0 right-0 h-[2px] bg-linear-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-[light-ray_3s_ease-in-out_infinite]" style={{ transformOrigin: 'left center' }}></div>
               </span>
             </h2>
             <p className="text-lg text-gray-400 max-w-3xl mx-auto" style={{ fontFamily: '"Space Grotesk", sans-serif', letterSpacing: '0.01em' }}>
@@ -450,18 +450,18 @@ const Index = () => {
                   open={openFeatures.includes(index)}
                   onOpenChange={() => toggleFeature(index)}
                 >
-                  <Card className="bg-gradient-to-b from-gray-900 to-gray-950 border border-gray-800 rounded-xl overflow-hidden hover:border-gray-700 transition-all duration-300">
+                  <Card className="bg-linear-to-b from-gray-900 to-gray-950 border border-gray-800 rounded-xl overflow-hidden hover:border-gray-700 transition-all duration-300">
                     <CollapsibleTrigger asChild>
                       <div className="w-full cursor-pointer">
                         <CardContent className="p-5">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-3">
-                              <div className="w-10 h-10 bg-gradient-to-br from-[#3ABCF7] to-[#8B2FF8] rounded-lg flex items-center justify-center">
+                              <div className="w-10 h-10 bg-linear-to-br from-[#3ABCF7] to-[#8B2FF8] rounded-lg flex items-center justify-center">
                                 <feature.icon className="w-5 h-5 text-white" />
                               </div>
                               <div>
                                 <h3 className="text-lg font-semibold" style={{ fontFamily: '"Space Grotesk", sans-serif', letterSpacing: '0.01em' }}>
-                                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8]">{feature.title}</span>
+                                  <span className="bg-clip-text text-transparent bg-linear-to-r from-[#3ABCF7] to-[#8B2FF8]">{feature.title}</span>
                                 </h3>
                               </div>
                             </div>
@@ -501,9 +501,9 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-20">
             <h2 className="text-5xl mb-6 relative" style={{ fontFamily: '"Space Grotesk", sans-serif', fontWeight: 700, letterSpacing: '0.02em' }}>
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-text-shimmer bg-[length:200%_auto] relative">ZapGap in Action
+              <span className="bg-clip-text text-transparent bg-linear-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-text-shimmer bg-size-[200%_auto] relative">ZapGap in Action
                 {/* Light ray animation */}
-                <div className="absolute bottom-[-8px] left-0 right-0 h-[2px] bg-gradient-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-[light-ray_3s_ease-in-out_infinite]" style={{ transformOrigin: 'left center' }}></div>
+                <div className="absolute bottom-[-8px] left-0 right-0 h-[2px] bg-linear-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-[light-ray_3s_ease-in-out_infinite]" style={{ transformOrigin: 'left center' }}></div>
               </span>
             </h2>
             <p className="text-xl text-gray-400 max-w-4xl mx-auto" style={{ fontFamily: '"Space Grotesk", sans-serif', letterSpacing: '0.01em' }}>
@@ -554,7 +554,7 @@ const Index = () => {
                 <div className="space-y-6 text-center">
                   <div className="flex flex-col items-center justify-center space-y-4">
                     <motion.div 
-                      className="w-16 h-16 bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8] rounded-xl flex items-center justify-center"
+                      className="w-16 h-16 bg-linear-to-r from-[#3ABCF7] to-[#8B2FF8] rounded-xl flex items-center justify-center"
                       initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ duration: 0.5 }}
@@ -568,29 +568,29 @@ const Index = () => {
                       </motion.div>
                     </motion.div>
                     <h4 className="text-xl" style={{ fontFamily: '"Space Grotesk", sans-serif', fontWeight: 600, letterSpacing: '0.01em' }}>
-                      <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8]">Problem</span>
+                      <span className="bg-clip-text text-transparent bg-linear-to-r from-[#3ABCF7] to-[#8B2FF8]">Problem</span>
                     </h4>
                   </div>
                   <p className="text-gray-400 leading-relaxed mx-auto" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>{useCases[activeUseCase].problem}</p>
                 </div>
                 <div className="space-y-6 text-center">
                   <div className="flex flex-col items-center justify-center space-y-4">
-                    <div className="w-16 h-16 bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8] rounded-xl flex items-center justify-center">
+                    <div className="w-16 h-16 bg-linear-to-r from-[#3ABCF7] to-[#8B2FF8] rounded-xl flex items-center justify-center">
                       <Zap className="w-8 h-8 text-white" />
                     </div>
                     <h4 className="text-xl" style={{ fontFamily: '"Space Grotesk", sans-serif', fontWeight: 600, letterSpacing: '0.01em' }}>
-                      <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8]">ZapGap Solution</span>
+                      <span className="bg-clip-text text-transparent bg-linear-to-r from-[#3ABCF7] to-[#8B2FF8]">ZapGap Solution</span>
                     </h4>
                   </div>
                   <p className="text-gray-400 leading-relaxed mx-auto" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>{useCases[activeUseCase].solution}</p>
                 </div>
                 <div className="space-y-6 text-center">
                   <div className="flex flex-col items-center justify-center space-y-4">
-                    <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-400 rounded-xl flex items-center justify-center">
+                    <div className="w-16 h-16 bg-linear-to-r from-green-500 to-emerald-400 rounded-xl flex items-center justify-center">
                       <Target className="w-8 h-8 text-white" />
                     </div>
                     <h4 className="text-xl" style={{ fontFamily: '"Space Grotesk", sans-serif', fontWeight: 600, letterSpacing: '0.01em' }}>
-                      <span className="bg-clip-text text-transparent bg-gradient-to-r from-green-500 to-emerald-400">Impact</span>
+                      <span className="bg-clip-text text-transparent bg-linear-to-r from-green-500 to-emerald-400">Impact</span>
                     </h4>
                   </div>
                   <motion.div 
@@ -615,7 +615,7 @@ const Index = () => {
         
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.h1 
-            className="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-[#3ABCF7] to-[#7F5AF8]"
+            className="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-linear-to-r from-[#3ABCF7] to-[#7F5AF8]"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
@@ -647,9 +647,9 @@ const Index = () => {
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button className="btn-futuristic w-full sm:w-auto text-lg py-6 px-8 relative overflow-hidden group">
                 <span className="relative z-10">Get Early Access</span>
-                <span className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                <span className="absolute inset-0 bg-linear-to-r from-blue-600 to-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
                 <motion.span 
-                  className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-cyan-400/20 rounded-full"
+                  className="absolute inset-0 bg-linear-to-r from-blue-600/20 to-cyan-400/20 rounded-full"
                   initial={{ scale: 0, opacity: 0.5 }}
                   animate={{ scale: 1.5, opacity: 0 }}
                   transition={{ duration: 1.5, repeat: Infinity, repeatType: "loop" }}

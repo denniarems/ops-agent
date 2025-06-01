@@ -9,14 +9,14 @@ const Features = () => {
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-b from-black via-black/95 to-black z-10"></div>
-          <div className="absolute top-0 left-0 right-0 h-[500px] bg-gradient-to-b from-[#3ABCF7]/20 via-[#8B2FF8]/10 to-transparent blur-3xl"></div>
+          <div className="absolute inset-0 bg-linear-to-b from-black via-black/95 to-black z-10"></div>
+          <div className="absolute top-0 left-0 right-0 h-[500px] bg-linear-to-b from-[#3ABCF7]/20 via-[#8B2FF8]/10 to-transparent blur-3xl"></div>
         </div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="text-5xl md:text-6xl lg:text-7xl mb-6" style={{ fontFamily: '"Space Grotesk", sans-serif', fontWeight: 700, letterSpacing: '0.02em' }}>
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-text-shimmer bg-[length:200%_auto]">
+              <span className="bg-clip-text text-transparent bg-linear-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8] animate-text-shimmer bg-size-[200%_auto]">
                 AI-Powered Features
               </span>
             </h1>
@@ -24,7 +24,7 @@ const Features = () => {
               Transforming cloud operations with intelligent automation and conversational AI
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button className="bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8] hover:from-[#3ABCF7]/90 hover:to-[#8B2FF8]/90 text-white px-8 py-6 rounded-xl text-lg" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
+              <Button className="bg-linear-to-r from-[#3ABCF7] to-[#8B2FF8] hover:from-[#3ABCF7]/90 hover:to-[#8B2FF8]/90 text-white px-8 py-6 rounded-xl text-lg" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
                 Get Started
               </Button>
               <Link to="/platform">
@@ -43,22 +43,22 @@ const Features = () => {
       {/* CTA Section */}
       <section className="py-20 relative">
         <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-b from-black/95 via-black/95 to-black z-10"></div>
-          <div className="absolute bottom-0 left-0 right-0 h-[300px] bg-gradient-to-t from-[#3ABCF7]/20 via-[#8B2FF8]/10 to-transparent blur-3xl"></div>
+          <div className="absolute inset-0 bg-linear-to-b from-black/95 via-black/95 to-black z-10"></div>
+          <div className="absolute bottom-0 left-0 right-0 h-[300px] bg-linear-to-t from-[#3ABCF7]/20 via-[#8B2FF8]/10 to-transparent blur-3xl"></div>
         </div>
         
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="bg-gradient-to-r from-[#3ABCF7]/10 to-[#8B2FF8]/10 backdrop-blur-lg rounded-3xl p-10 border border-white/10">
+          <div className="bg-linear-to-r from-[#3ABCF7]/10 to-[#8B2FF8]/10 backdrop-blur-lg rounded-3xl p-10 border border-white/10">
             <div className="text-center">
               <h2 className="text-3xl md:text-4xl mb-6" style={{ fontFamily: '"Space Grotesk", sans-serif', fontWeight: 600, letterSpacing: '0.01em' }}>
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8]">
+                <span className="bg-clip-text text-transparent bg-linear-to-r from-[#3ABCF7] via-[#5B7CF7] to-[#8B2FF8]">
                   Ready to transform your cloud operations?
                 </span>
               </h2>
               <p className="text-xl text-gray-300 mb-8" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
                 Join the teams already using ZapGap to automate and optimize their infrastructure
               </p>
-              <Button className="bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8] hover:from-[#3ABCF7]/90 hover:to-[#8B2FF8]/90 text-white px-8 py-6 rounded-xl text-lg" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
+              <Button className="bg-linear-to-r from-[#3ABCF7] to-[#8B2FF8] hover:from-[#3ABCF7]/90 hover:to-[#8B2FF8]/90 text-white px-8 py-6 rounded-xl text-lg" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
                 Request Demo
               </Button>
             </div>
