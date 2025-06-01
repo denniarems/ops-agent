@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -55,6 +56,7 @@ const AnimatedTextCycler = ({ texts }: { texts: string[] }) => {
 };
 
 const Index = () => {
+  const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   // State for features section
   // Note: activeUseCase state removed as it's no longer needed
@@ -355,13 +357,14 @@ const Index = () => {
                 className="relative group"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8] rounded-xl blur-xl opacity-70 group-hover:opacity-100 transition-all duration-300 -z-10"></div>
-                <Button 
+                <Button
+                  onClick={() => navigate('/demo')}
                   className="w-full md:w-auto bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8] border-0 text-white font-bold rounded-xl px-12 py-7 text-lg shadow-[0_8px_30px_rgba(139,47,248,0.3)] relative overflow-hidden"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-[#3ABCF7]/20 to-[#8B2FF8]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <div className="relative flex items-center justify-center">
                     <Sparkles className="w-5 h-5 mr-3 animate-pulse" />
-                    <span>Join the Waitlist</span>
+                    <span>Try Demo</span>
                   </div>
                 </Button>
               </motion.div>
