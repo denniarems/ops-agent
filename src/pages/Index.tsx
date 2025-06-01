@@ -240,22 +240,6 @@ const Index = () => {
               ))}
             </nav>
 
-            <div className="flex items-center">
-              <motion.div 
-                whileHover={{ scale: 1.05 }} 
-                whileTap={{ scale: 0.95 }}
-                className="relative group"
-              >
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8] rounded-full opacity-0 group-hover:opacity-70 blur-sm transition duration-300"></div>
-                <Button 
-                  variant="ghost" 
-                  className="relative text-gray-300 hover:text-white bg-black/30 hover:bg-black/50 border border-white/10 backdrop-blur-sm rounded-full px-6"
-                  style={{ fontFamily: '"Space Grotesk", sans-serif', letterSpacing: '0.01em' }}
-                >
-                  Sign In
-                </Button>
-              </motion.div>
-            </div>
           </div>
         </div>
       </motion.header>
@@ -735,15 +719,6 @@ const Index = () => {
           </div>
         </div>
       </footer>
-
-      {/* Floating Chat Icon */}
-      <div className="fixed bottom-8 right-8 z-50">
-        <Button 
-          className="w-16 h-16 rounded-full btn-futuristic glow-hover animate-pulse-glow"
-        >
-          <MessageCircle className="w-8 h-8 text-white" />
-        </Button>
-      </div>
     </div>
   );
 };
