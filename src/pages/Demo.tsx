@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, Send, Sparkles, MessageCircle,
-  Zap, User, Bot, ChevronRight, AlertCircle
+  Zap, User, Bot, ChevronRight, AlertCircle, RotateCcw
 } from "lucide-react";
 
 interface Message {
@@ -41,12 +41,45 @@ interface ChatError {
 // Generate unique session ID for each demo session
 const generateSessionId = () => `demo_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 
+// Session storage key for persistence
+const SESSION_STORAGE_KEY = 'zapgap_session_id';
+
+// Get or create session ID with persistence
+const getOrCreateSessionId = (): string => {
+  try {
+    // Check if sessionStorage is available
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      const existingSessionId = sessionStorage.getItem(SESSION_STORAGE_KEY);
+      if (existingSessionId) {
+        console.log('Retrieved existing session ID:', existingSessionId);
+        return existingSessionId;
+      }
+    }
+  } catch (error) {
+    console.warn('SessionStorage not available:', error);
+  }
+
+  // Generate new session ID if none exists or sessionStorage unavailable
+  const newSessionId = generateSessionId();
+  console.log('Generated new session ID:', newSessionId);
+
+  try {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      sessionStorage.setItem(SESSION_STORAGE_KEY, newSessionId);
+    }
+  } catch (error) {
+    console.warn('Could not store session ID:', error);
+  }
+
+  return newSessionId;
+};
+
 const Demo = () => {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [sessionId] = useState(() => generateSessionId());
+  const [sessionId, setSessionId] = useState(() => getOrCreateSessionId());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -67,6 +100,7 @@ const Demo = () => {
   const callZapGapAPI = async (userMessage: string): Promise<string> => {
     try {
       console.log('Calling ZapGap Chat API with message:', userMessage);
+      console.log('Using session ID:', sessionId);
 
       // Use chatId query parameter to get simplified response
       const url = new URL(ZAPGAP_API.endpoint);
@@ -101,6 +135,19 @@ const Demo = () => {
       // Debug: Log the response structure
       console.log('ZapGap API response:', JSON.stringify(data, null, 2));
 
+      // Synchronize session ID with server response
+      if (data.session_id && data.session_id !== sessionId) {
+        console.log('Updating session ID from server:', data.session_id);
+        setSessionId(data.session_id);
+        try {
+          if (typeof window !== 'undefined' && window.sessionStorage) {
+            sessionStorage.setItem(SESSION_STORAGE_KEY, data.session_id);
+          }
+        } catch (error) {
+          console.warn('Could not update stored session ID:', error);
+        }
+      }
+
       // Extract the AI response from the simplified response
       const aiResponse = data.message || "I'm having trouble processing your request right now. Please try again.";
 
@@ -109,6 +156,29 @@ const Demo = () => {
       console.error('ZapGap API call failed:', error);
       throw error;
     }
+  };
+
+  // Clear chat and start new session
+  const handleClearChat = () => {
+    console.log('Clearing chat and starting new session');
+
+    // Clear all messages
+    setMessages([]);
+
+    // Generate new session ID
+    const newSessionId = generateSessionId();
+    setSessionId(newSessionId);
+
+    // Update sessionStorage with new session ID
+    try {
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        sessionStorage.setItem(SESSION_STORAGE_KEY, newSessionId);
+      }
+    } catch (error) {
+      console.warn('Could not store new session ID:', error);
+    }
+
+    console.log('New session started with ID:', newSessionId);
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -191,9 +261,23 @@ const Demo = () => {
               </h1>
             </div>
           </div>
-          <div className="flex items-center space-x-2 text-sm text-gray-400">
-            <Sparkles className="w-4 h-4" />
-            <span>AI Infrastructure Assistant</span>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 text-sm text-gray-400">
+              <Sparkles className="w-4 h-4" />
+              <span>AI Infrastructure Assistant</span>
+            </div>
+            {messages.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearChat}
+                className="text-gray-400 hover:text-white transition-colors"
+                title="Clear chat and start new session"
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Clear Chat
+              </Button>
+            )}
           </div>
         </div>
       </motion.header>
