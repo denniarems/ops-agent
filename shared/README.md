@@ -1,4 +1,4 @@
-# zapgap-app
+# shared
 
 To install dependencies:
 
