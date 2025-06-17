@@ -4,7 +4,6 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "mastra dev",
     "build": "mastra build",
     "start": "mastra start"
@@ -21,8 +20,8 @@
     "@mastra/core": "^0.10.5",
     "@mastra/libsql": "^0.10.2",
     "@mastra/loggers": "^0.10.2",
+    "@mastra/mcp": "^0.10.3",
     "@mastra/memory": "^0.10.3",
-    "shared": "workspace:*",
     "zod": "^3.25.62"
   },
   "devDependencies": {

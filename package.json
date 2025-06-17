@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Zap the Gap of Your Infrastructure",
   "license": "MIT",
+  "packageManager": "bun@1.2.15",
   "workspaces": [
     "./server",
     "./client",
