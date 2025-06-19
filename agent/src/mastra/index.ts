@@ -4,8 +4,9 @@ import { PinoLogger } from '@mastra/loggers';
 import { cfnAgent } from './agents/cfn';
 import { documentationAgent } from './agents/documentation';
 import { coreAgent } from './agents/core';
-import { documentationAccessWorkflow } from './workflows/documentation-access';
-import { cfnOperationsWorkflow } from './workflows/cfn-operations';
+// Workflows are commented out in the Mastra configuration
+// import { documentationAccessWorkflow } from './workflows/documentation-access';
+// import { cfnOperationsWorkflow } from './workflows/cfn-operations';
 
 import { UpstashStore } from "@mastra/upstash";
 import { AgentNetwork } from '@mastra/core/network';
@@ -43,13 +44,13 @@ export const awsInfrastructureNetwork = new AgentNetwork({
     **When to use**: Start with this agent for complex planning tasks, architectural decisions, or when the user needs guidance on which AWS services to use.
 
     ### 2. CloudFormation Agent (cfnAgent)
-    **Purpose**: CloudFormation operations and infrastructure as code
+    **Purpose**: CloudFormation operations and infrastructure as code using native tools
     **Best for**:
-    - Stack creation, updates, and deletion
+    - Stack creation, updates, and deletion via native CloudFormation tools
     - Template validation and analysis
-    - Infrastructure deployment automation
+    - Infrastructure deployment automation with dedicated stack-per-resource approach
     - Resource lifecycle management
-    - CloudFormation best practices
+    - CloudFormation best practices with enhanced error handling
     
     **When to use**: Use directly for any CloudFormation-related operations, template work, or infrastructure deployment tasks.
 

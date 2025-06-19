@@ -1,9 +1,9 @@
-import { anthropic } from '@ai-sdk/anthropic';
 import { Agent } from '@mastra/core/agent';
 import { Memory } from '@mastra/memory';
 import { UpstashStore, UpstashVector } from '@mastra/upstash';
-import { cfnMcpClient } from '../mcps/cfn';
+import { cloudFormationTools } from '../tools/cfn-tools';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import { cfnOperationsWorkflow } from '../workflows/cfn-operations';
 
 // Initialize memory with Upstash storage and vector search
 const memory = new Memory({
@@ -26,12 +26,17 @@ const openrouter = createOpenRouter({
 
 export const cfnAgent = new Agent({
   name: 'AWS CloudFormation Agent',
+  workflows({ runtimeContext: _runtimeContext }) {
+    return {
+      cfnOperationsWorkflow: cfnOperationsWorkflow,
+    };
+  },
   instructions: `
-    Specialized AWS CloudFormation agent for infrastructure-as-code operations and resource management.
+    Specialized AWS CloudFormation agent for infrastructure-as-code operations and resource management using native Mastra tools.
 
     Core Capabilities:
-    • Create, read, update, and delete AWS resources via CloudFormation Cloud Control API
-    • Manage CloudFormation stacks and templates
+    • Create, read, update, and delete AWS resources via CloudFormation stacks
+    • Manage CloudFormation stacks and templates with dedicated stack-per-resource approach
     • List resources, provide resource schemas, and track operation status
     • Generate CloudFormation templates with best practices
     • Multi-tenant support with automatic resource tagging
@@ -74,11 +79,10 @@ export const cfnAgent = new Agent({
     • Optimize for cost and performance
     • Follow AWS Well-Architected Framework principles
 
-    Use CloudFormation MCP tools exclusively for all infrastructure operations.
+    Use native CloudFormation tools exclusively for all infrastructure operations.
     Prioritize security, cost optimization, and operational excellence.
   `,
-
   model: openrouter('mistralai/magistral-medium-2506'),
-  tools: await cfnMcpClient.getTools(),
+  tools: cloudFormationTools,
   memory,
 });

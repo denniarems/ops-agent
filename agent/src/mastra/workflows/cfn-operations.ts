@@ -1,108 +1,132 @@
 import { createStep, createWorkflow } from '@mastra/core/workflows';
 import { z } from 'zod';
-import { cfnAgent } from '../agents/cfn';
+import {
+  createResourceTool,
+  getResourceTool,
+  updateResourceTool,
+  deleteResourceTool,
+  listResourcesTool,
+  getRequestStatusTool,
+  createTemplateTool,
+  getResourceSchemaInformationTool
+} from '../tools/cfn-tools';
 
-// Input schema for CloudFormation operations
-export const cfnOperationRequestSchema = z.object({
+// Input schema for CloudFormation resource lifecycle operations
+export const cfnResourceLifecycleRequestSchema = z.object({
   operation: z.enum([
-    'create-stack',
-    'update-stack',
-    'delete-stack',
-    'describe-stack',
-    'list-stacks',
-    'validate-template',
-    'get-template',
-    'create-change-set',
-    'execute-change-set',
-    'describe-stack-events',
-    'describe-stack-resources'
-  ]).describe('CloudFormation operation to perform'),
-  stackName: z.string().optional().describe('Name of the CloudFormation stack'),
-  templateBody: z.string().optional().describe('CloudFormation template content'),
-  templateUrl: z.string().optional().describe('S3 URL of the CloudFormation template'),
-  parameters: z.array(z.object({
-    key: z.string(),
-    value: z.string(),
-  })).optional().describe('Stack parameters'),
-  capabilities: z.array(z.enum([
-    'CAPABILITY_IAM',
-    'CAPABILITY_NAMED_IAM',
-    'CAPABILITY_AUTO_EXPAND'
-  ])).optional().describe('Required capabilities for the stack'),
-  tags: z.record(z.string()).optional().describe('Tags to apply to the stack'),
-  region: z.string().optional().describe('AWS region for the operation'),
-  rollbackConfiguration: z.object({
-    rollbackTriggers: z.array(z.object({
-      arn: z.string(),
-      type: z.string(),
-    })).optional(),
-    monitoringTimeInMinutes: z.number().optional(),
-  }).optional().describe('Rollback configuration'),
-  notificationArns: z.array(z.string()).optional().describe('SNS topic ARNs for notifications'),
-  timeoutInMinutes: z.number().optional().describe('Stack operation timeout'),
-  enableTerminationProtection: z.boolean().optional().describe('Enable termination protection'),
-  dryRun: z.boolean().default(false).describe('Perform validation only without executing'),
+    'create-resource-lifecycle',
+    'update-resource-lifecycle',
+    'template-generation-flow',
+    'delete-resource-lifecycle',
+    'list-and-manage-resources'
+  ]).describe('CloudFormation resource lifecycle operation to perform'),
+
+  // Resource creation parameters
+  resourceType: z.string().optional().describe('AWS resource type (e.g., AWS::S3::Bucket)'),
+  resourceProperties: z.record(z.any()).optional().describe('Resource properties'),
+  stackName: z.string().optional().describe('Custom stack name (auto-generated if not provided)'),
+
+  // Update parameters
+  stackId: z.string().optional().describe('Stack ID for update/delete operations'),
+  updatedProperties: z.record(z.any()).optional().describe('Updated resource properties'),
+
+  // Filtering and management parameters
+  resourceTypeFilter: z.string().optional().describe('Filter resources by type'),
+  maxResults: z.number().optional().default(10).describe('Maximum results to return'),
+
+  // Template generation parameters
+  templateFormat: z.enum(['JSON', 'YAML']).optional().default('JSON').describe('Template output format'),
+
+  // General parameters
+  region: z.string().optional().describe('AWS region for operations'),
+  waitForCompletion: z.boolean().default(true).describe('Wait for operations to complete'),
+  maxWaitTime: z.number().default(300).describe('Maximum wait time in seconds'),
 });
 
-// Output schema for CloudFormation operations
-export const cfnOperationResultSchema = z.object({
-  status: z.enum(['success', 'failed', 'in-progress', 'validation-only']),
+// Output schema for CloudFormation resource lifecycle operations
+export const cfnResourceLifecycleResultSchema = z.object({
+  status: z.enum(['success', 'failed', 'in-progress', 'completed']),
   operation: z.string(),
-  stackName: z.string().optional(),
-  stackId: z.string().optional(),
-  stackStatus: z.string().optional(),
-  operationResult: z.object({
-    stackDetails: z.object({
-      stackName: z.string().optional(),
-      stackId: z.string().optional(),
-      stackStatus: z.string().optional(),
-      creationTime: z.string().optional(),
-      lastUpdatedTime: z.string().optional(),
-      description: z.string().optional(),
-      capabilities: z.array(z.string()).optional(),
-      tags: z.array(z.object({
-        key: z.string(),
-        value: z.string(),
-      })).optional(),
-    }).optional(),
-    resources: z.array(z.object({
+
+  // Resource creation results
+  createdResource: z.object({
+    stackId: z.string(),
+    stackName: z.string(),
+    resourceType: z.string(),
+    status: z.string(),
+  }).optional(),
+
+  // Resource details
+  resourceDetails: z.object({
+    stackId: z.string(),
+    stackName: z.string(),
+    stackStatus: z.string(),
+    resourceDetails: z.object({
       logicalResourceId: z.string(),
       physicalResourceId: z.string().optional(),
       resourceType: z.string(),
       resourceStatus: z.string(),
-      timestamp: z.string().optional(),
-    })).optional(),
-    events: z.array(z.object({
-      eventId: z.string(),
-      stackName: z.string(),
-      logicalResourceId: z.string().optional(),
-      physicalResourceId: z.string().optional(),
-      resourceType: z.string().optional(),
       timestamp: z.string(),
-      resourceStatus: z.string().optional(),
-      resourceStatusReason: z.string().optional(),
-    })).optional(),
+      metadata: z.record(z.any()).optional(),
+    }),
     outputs: z.array(z.object({
       outputKey: z.string(),
       outputValue: z.string(),
       description: z.string().optional(),
     })).optional(),
-    changeSet: z.object({
-      changeSetName: z.string().optional(),
-      changeSetId: z.string().optional(),
-      changes: z.array(z.object({
-        action: z.string(),
-        logicalResourceId: z.string(),
-        resourceType: z.string(),
-        replacement: z.string().optional(),
-      })).optional(),
-    }).optional(),
-    validationResult: z.object({
-      isValid: z.boolean(),
-      validationErrors: z.array(z.string()).optional(),
-      warnings: z.array(z.string()).optional(),
-    }).optional(),
-  }),
+  }).optional(),
+
+  // Update results
+  updateResult: z.object({
+    stackId: z.string(),
+    stackName: z.string(),
+    status: z.string(),
+    changeSetId: z.string().optional(),
+  }).optional(),
+
+  // List results
+  resources: z.array(z.object({
+    stackId: z.string(),
+    stackName: z.string(),
+    resourceType: z.string(),
+    stackStatus: z.string(),
+    creationTime: z.string().optional(),
+    lastUpdatedTime: z.string().optional(),
+    tags: z.record(z.string()).optional(),
+  })).optional(),
+
+  // Template generation results
+  template: z.object({
+    stackId: z.string(),
+    stackName: z.string(),
+    template: z.string(),
+    templateFormat: z.string(),
+    templateSize: z.number(),
+  }).optional(),
+
+  // Schema information
+  schemaInfo: z.object({
+    resourceType: z.string(),
+    schema: z.record(z.any()),
+    schemaVersion: z.string().optional(),
+    documentation: z.string().optional(),
+    properties: z.array(z.object({
+      name: z.string(),
+      type: z.string(),
+      required: z.boolean(),
+      description: z.string().optional(),
+    })).optional(),
+  }).optional(),
+
+  // Status tracking
+  statusChecks: z.array(z.object({
+    timestamp: z.string(),
+    stackStatus: z.string(),
+    isComplete: z.boolean(),
+    isSuccessful: z.boolean(),
+  })).optional(),
+
+  // General fields
   errors: z.array(z.object({
     code: z.string(),
     message: z.string(),
@@ -110,35 +134,42 @@ export const cfnOperationResultSchema = z.object({
   })).optional(),
   recommendations: z.array(z.string()).optional(),
   executionTime: z.number().describe('Total execution time in milliseconds'),
+  stepsCompleted: z.array(z.string()).describe('List of completed workflow steps'),
 });
 
-// Error handling utility for CloudFormation operations
-const handleCfnError = (error: any, operation: string, stackName?: string) => {
-  console.error(`CloudFormation ${operation} error${stackName ? ` for stack ${stackName}` : ''}:`, error);
-  
-  // Parse common CloudFormation error codes
+// Error handling utility for native CloudFormation tools
+const handleNativeCfnError = (error: any, operation: string, context?: string) => {
+  console.error(`Native CloudFormation ${operation} error${context ? ` (${context})` : ''}:`, error);
+
+  // Parse common CloudFormation error codes from native tools
   let severity: 'warning' | 'error' | 'critical' = 'error';
   let code = 'UNKNOWN_ERROR';
-  
+
   if (error.message) {
-    if (error.message.includes('ValidationError')) {
+    if (error.message.includes('CloudFormation validation error')) {
       code = 'VALIDATION_ERROR';
       severity = 'warning';
-    } else if (error.message.includes('AccessDenied')) {
-      code = 'ACCESS_DENIED';
+    } else if (error.message.includes('AWS credentials expired')) {
+      code = 'CREDENTIALS_EXPIRED';
       severity = 'critical';
-    } else if (error.message.includes('AlreadyExists')) {
+    } else if (error.message.includes('Resource already exists')) {
       code = 'RESOURCE_ALREADY_EXISTS';
       severity = 'warning';
-    } else if (error.message.includes('DoesNotExist')) {
-      code = 'RESOURCE_NOT_FOUND';
+    } else if (error.message.includes('Stack not found')) {
+      code = 'STACK_NOT_FOUND';
       severity = 'error';
-    } else if (error.message.includes('InsufficientCapabilities')) {
+    } else if (error.message.includes('Insufficient capabilities')) {
       code = 'INSUFFICIENT_CAPABILITIES';
       severity = 'error';
+    } else if (error.message.includes('AWS service limit exceeded')) {
+      code = 'SERVICE_LIMIT_EXCEEDED';
+      severity = 'error';
+    } else if (error.message.includes('read-only mode')) {
+      code = 'READ_ONLY_MODE';
+      severity = 'warning';
     }
   }
-  
+
   return {
     code,
     message: error.message || 'Unknown CloudFormation error',
@@ -146,586 +177,881 @@ const handleCfnError = (error: any, operation: string, stackName?: string) => {
   };
 };
 
-// Retry utility for CloudFormation operations
-const retryCfnOperation = async <T>(
-  operation: () => Promise<T>,
-  maxRetries: number = 3,
-  delay: number = 2000
-): Promise<T> => {
-  let lastError: any;
-  
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+// Utility to wait for stack operation completion
+const waitForStackCompletion = async (
+  stackId: string,
+  runtimeContext: any,
+  maxWaitTime: number = 300,
+  pollInterval: number = 10
+): Promise<{ isComplete: boolean; isSuccessful: boolean; finalStatus: string }> => {
+  const startTime = Date.now();
+  const maxWaitMs = maxWaitTime * 1000;
+
+  while (Date.now() - startTime < maxWaitMs) {
     try {
-      return await operation();
-    } catch (error) {
-      lastError = error;
-      console.warn(`CloudFormation operation attempt ${attempt}/${maxRetries} failed:`, error);
-      
-      // Don't retry certain errors
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes('ValidationError') ||
-          errorMessage.includes('AccessDenied') ||
-          errorMessage.includes('AlreadyExists')) {
-        throw error;
+      const statusResult = await getRequestStatusTool.execute({
+        context: { stackId },
+        runtimeContext
+      });
+
+      if (statusResult.isComplete) {
+        return {
+          isComplete: true,
+          isSuccessful: statusResult.isSuccessful,
+          finalStatus: statusResult.stackStatus
+        };
       }
-      
-      if (attempt < maxRetries) {
-        await new Promise(resolve => setTimeout(resolve, delay * attempt));
+
+      // Wait before next poll
+      await new Promise(resolve => setTimeout(resolve, pollInterval * 1000));
+
+    } catch (error) {
+      console.warn(`Error checking stack status: ${error}`);
+      // Continue polling unless it's a critical error
+      if (error instanceof Error && error.message.includes('Stack not found')) {
+        return { isComplete: true, isSuccessful: false, finalStatus: 'NOT_FOUND' };
       }
     }
   }
-  
-  throw lastError;
+
+  // Timeout reached
+  return { isComplete: false, isSuccessful: false, finalStatus: 'TIMEOUT' };
 };
 
-// Step 1: Pre-operation Validation
-const preOperationValidation = createStep({
-  id: 'pre-operation-validation',
-  inputSchema: cfnOperationRequestSchema,
-  outputSchema: z.object({
-    isValid: z.boolean(),
-    validationErrors: z.array(z.string()),
-    warnings: z.array(z.string()),
-    sanitizedInput: cfnOperationRequestSchema,
-  }),
-  execute: async ({ inputData }) => {
-    const errors: string[] = [];
-    const warnings: string[] = [];
-    
-    console.log(`Validating CloudFormation ${inputData.operation} operation...`);
-    
-    // Validate required fields based on operation
-    switch (inputData.operation) {
-      case 'create-stack':
-      case 'update-stack':
-        if (!inputData.stackName) {
-          errors.push('Stack name is required for create/update operations');
-        }
-        if (!inputData.templateBody && !inputData.templateUrl) {
-          errors.push('Either templateBody or templateUrl is required');
-        }
-        if (inputData.templateBody && inputData.templateUrl) {
-          warnings.push('Both templateBody and templateUrl provided, templateBody will take precedence');
-        }
-        break;
-        
-      case 'delete-stack':
-      case 'describe-stack':
-      case 'get-template':
-      case 'describe-stack-events':
-      case 'describe-stack-resources':
-        if (!inputData.stackName) {
-          errors.push('Stack name is required for this operation');
-        }
-        break;
-        
-      case 'validate-template':
-        if (!inputData.templateBody && !inputData.templateUrl) {
-          errors.push('Either templateBody or templateUrl is required for template validation');
-        }
-        break;
-        
-      case 'create-change-set':
-      case 'execute-change-set':
-        if (!inputData.stackName) {
-          errors.push('Stack name is required for change set operations');
-        }
-        break;
-    }
-    
-    // Validate stack name format
-    if (inputData.stackName) {
-      const stackNameRegex = /^[a-zA-Z][-a-zA-Z0-9]*$/;
-      if (!stackNameRegex.test(inputData.stackName)) {
-        errors.push('Stack name must start with a letter and contain only alphanumeric characters and hyphens');
-      }
-      if (inputData.stackName.length > 128) {
-        errors.push('Stack name must be 128 characters or less');
-      }
-    }
-    
-    // Validate template size if provided
-    if (inputData.templateBody && inputData.templateBody.length > 51200) {
-      warnings.push('Template body is large (>50KB), consider using templateUrl instead');
-    }
-    
-    // Validate parameters
-    if (inputData.parameters) {
-      const paramKeys = new Set();
-      for (const param of inputData.parameters) {
-        if (paramKeys.has(param.key)) {
-          errors.push(`Duplicate parameter key: ${param.key}`);
-        }
-        paramKeys.add(param.key);
-      }
-    }
-    
-    // Validate timeout
-    if (inputData.timeoutInMinutes && (inputData.timeoutInMinutes < 1 || inputData.timeoutInMinutes > 43200)) {
-      errors.push('Timeout must be between 1 and 43200 minutes (30 days)');
-    }
-    
-    const isValid = errors.length === 0;
-    
-    console.log(`Validation ${isValid ? 'passed' : 'failed'} with ${errors.length} errors and ${warnings.length} warnings`);
-    
-    return {
-      isValid,
-      validationErrors: errors,
-      warnings,
-      sanitizedInput: inputData,
-    };
-  },
-});
-
-// Step 2: CloudFormation Agent Execution
-const cfnAgentExecution = createStep({
-  id: 'cfn-agent-execution',
+// Step 1: Resource Creation Flow - Create → Status Check → Get Details
+const resourceCreationFlow = createStep({
+  id: 'resource-creation-flow',
   inputSchema: z.object({
-    isValid: z.boolean(),
-    validationErrors: z.array(z.string()),
-    warnings: z.array(z.string()),
-    sanitizedInput: cfnOperationRequestSchema,
+    resourceType: z.string(),
+    resourceProperties: z.record(z.any()),
+    stackName: z.string().optional(),
+    waitForCompletion: z.boolean().default(true),
+    maxWaitTime: z.number().default(300),
   }),
   outputSchema: z.object({
-    operationResult: z.object({
-      stackDetails: z.object({
-        stackName: z.string().optional(),
-        stackId: z.string().optional(),
-        stackStatus: z.string().optional(),
-        creationTime: z.string().optional(),
-        lastUpdatedTime: z.string().optional(),
-        description: z.string().optional(),
-        capabilities: z.array(z.string()).optional(),
-        tags: z.array(z.object({
-          key: z.string(),
-          value: z.string(),
-        })).optional(),
-      }).optional(),
-      resources: z.array(z.object({
+    createdResource: z.object({
+      stackId: z.string(),
+      stackName: z.string(),
+      resourceType: z.string(),
+      status: z.string(),
+    }),
+    resourceDetails: z.object({
+      stackId: z.string(),
+      stackName: z.string(),
+      stackStatus: z.string(),
+      resourceDetails: z.object({
         logicalResourceId: z.string(),
         physicalResourceId: z.string().optional(),
         resourceType: z.string(),
         resourceStatus: z.string(),
-        timestamp: z.string().optional(),
-      })).optional(),
-      events: z.array(z.object({
-        eventId: z.string(),
-        stackName: z.string(),
-        logicalResourceId: z.string().optional(),
-        physicalResourceId: z.string().optional(),
-        resourceType: z.string().optional(),
         timestamp: z.string(),
-        resourceStatus: z.string().optional(),
-        resourceStatusReason: z.string().optional(),
-      })).optional(),
+        metadata: z.record(z.any()).optional(),
+      }),
       outputs: z.array(z.object({
         outputKey: z.string(),
         outputValue: z.string(),
         description: z.string().optional(),
       })).optional(),
-      changeSet: z.object({
-        changeSetName: z.string().optional(),
-        changeSetId: z.string().optional(),
-        changes: z.array(z.object({
-          action: z.string(),
-          logicalResourceId: z.string(),
-          resourceType: z.string(),
-          replacement: z.string().optional(),
-        })).optional(),
-      }).optional(),
-      validationResult: z.object({
-        isValid: z.boolean(),
-        validationErrors: z.array(z.string()).optional(),
-        warnings: z.array(z.string()).optional(),
-      }).optional(),
-    }),
-    executionErrors: z.array(z.object({
+    }).optional(),
+    statusChecks: z.array(z.object({
+      timestamp: z.string(),
+      stackStatus: z.string(),
+      isComplete: z.boolean(),
+      isSuccessful: z.boolean(),
+    })),
+    errors: z.array(z.object({
       code: z.string(),
       message: z.string(),
-      severity: z.string(),
+      severity: z.enum(['warning', 'error', 'critical']),
     })).optional(),
-    originalRequest: cfnOperationRequestSchema,
-    validationResult: z.object({
-      isValid: z.boolean(),
-      validationErrors: z.array(z.string()),
-      warnings: z.array(z.string()),
-    }),
   }),
-  execute: async ({ inputData }) => {
-    const startTime = Date.now();
+  execute: async ({ inputData, runtimeContext }) => {
     const errors: any[] = [];
-
-    if (!inputData.isValid) {
-      throw new Error(`Validation failed: ${inputData.validationErrors.join(', ')}`);
-    }
-
-    const request = inputData.sanitizedInput;
+    const statusChecks: any[] = [];
 
     try {
-      console.log(`Executing CloudFormation ${request.operation}...`);
-
-      const cfnPrompt = `
-        Execute CloudFormation operation with the following details:
-
-        Operation: ${request.operation}
-        Stack Name: ${request.stackName || 'N/A'}
-        Region: ${request.region || 'default'}
-        Dry Run: ${request.dryRun}
-
-        ${request.templateBody ? `Template Body: ${request.templateBody.substring(0, 500)}...` : ''}
-        ${request.templateUrl ? `Template URL: ${request.templateUrl}` : ''}
-        ${request.parameters ? `Parameters: ${JSON.stringify(request.parameters)}` : ''}
-        ${request.capabilities ? `Capabilities: ${request.capabilities.join(', ')}` : ''}
-        ${request.tags ? `Tags: ${JSON.stringify(request.tags)}` : ''}
-
-        Validation Warnings: ${inputData.warnings.join(', ') || 'None'}
-
-        Please execute this CloudFormation operation and provide detailed results including:
-        1. Stack details and status
-        2. Resource information (if applicable)
-        3. Recent events (if applicable)
-        4. Outputs (if applicable)
-        5. Any errors or warnings encountered
-
-        ${request.dryRun ? 'IMPORTANT: This is a dry run - validate only, do not execute actual changes.' : ''}
-      `;
-
-      await retryCfnOperation(async () => {
-        const response = await cfnAgent.stream([
-          {
-            role: 'user',
-            content: cfnPrompt,
-          },
-        ]);
-
-        let resultText = '';
-        for await (const chunk of response.textStream) {
-          resultText += chunk;
-        }
-
-        return resultText;
+      // Step 1a: Create the resource
+      console.log(`Creating resource: ${inputData.resourceType}`);
+      const createResult = await createResourceTool.execute({
+        context: {
+          resourceType: inputData.resourceType,
+          properties: inputData.resourceProperties,
+          stackName: inputData.stackName,
+        },
+        runtimeContext,
       });
 
-      // Parse the CloudFormation result (simplified parsing)
-      // In production, you would parse the actual CloudFormation API responses
-      const operationResult = {
-        stackDetails: request.stackName ? {
-          stackName: request.stackName,
-          stackId: `arn:aws:cloudformation:${request.region || 'us-east-1'}:123456789012:stack/${request.stackName}/12345678-1234-1234-1234-123456789012`,
-          stackStatus: request.dryRun ? 'VALIDATION_COMPLETE' : 'CREATE_IN_PROGRESS',
-          creationTime: new Date().toISOString(),
-          description: 'Stack managed by Mastra CloudFormation workflow',
-          capabilities: request.capabilities,
-          tags: request.tags ? Object.entries(request.tags).map(([key, value]) => ({ key, value: String(value) })) : undefined,
-        } : undefined,
-        resources: request.operation.includes('describe') ? [
-          {
-            logicalResourceId: 'ExampleResource',
-            physicalResourceId: 'example-resource-id',
-            resourceType: 'AWS::S3::Bucket',
-            resourceStatus: 'CREATE_COMPLETE',
-            timestamp: new Date().toISOString(),
-          }
-        ] : undefined,
-        events: request.operation.includes('events') ? [
-          {
-            eventId: 'event-12345',
-            stackName: request.stackName || 'unknown',
-            logicalResourceId: 'ExampleResource',
-            physicalResourceId: 'example-resource-id',
-            resourceType: 'AWS::S3::Bucket',
-            timestamp: new Date().toISOString(),
-            resourceStatus: 'CREATE_COMPLETE',
-            resourceStatusReason: 'Resource creation completed successfully',
-          }
-        ] : undefined,
-        outputs: request.operation === 'describe-stack' ? [
-          {
-            outputKey: 'BucketName',
-            outputValue: 'example-bucket-name',
-            description: 'Name of the created S3 bucket',
-          }
-        ] : undefined,
-        validationResult: request.operation === 'validate-template' ? {
-          isValid: true,
-          warnings: inputData.warnings,
-        } : undefined,
+      const createdResource = {
+        stackId: createResult.stackId,
+        stackName: createResult.stackName,
+        resourceType: createResult.resourceType,
+        status: createResult.status,
       };
 
-      console.log(`CloudFormation operation completed in ${Date.now() - startTime}ms`);
+      // Step 1b: Wait for completion if requested
+      let resourceDetails = undefined;
+      if (inputData.waitForCompletion) {
+        console.log(`Waiting for stack completion: ${createResult.stackId}`);
+        const completionResult = await waitForStackCompletion(
+          createResult.stackId,
+          runtimeContext,
+          inputData.maxWaitTime
+        );
+
+        statusChecks.push({
+          timestamp: new Date().toISOString(),
+          stackStatus: completionResult.finalStatus,
+          isComplete: completionResult.isComplete,
+          isSuccessful: completionResult.isSuccessful,
+        });
+
+        // Step 1c: Get detailed resource information if successful
+        if (completionResult.isComplete && completionResult.isSuccessful) {
+          console.log(`Getting resource details: ${createResult.stackId}`);
+          const detailsResult = await getResourceTool.execute({
+            context: { stackId: createResult.stackId },
+            runtimeContext,
+          });
+
+          resourceDetails = detailsResult;
+        }
+      }
 
       return {
-        operationResult,
-        executionErrors: errors.length > 0 ? errors : undefined,
-        originalRequest: request,
-        validationResult: {
-          isValid: inputData.isValid,
-          validationErrors: inputData.validationErrors,
-          warnings: inputData.warnings,
-        },
+        createdResource,
+        resourceDetails,
+        statusChecks,
+        errors: errors.length > 0 ? errors : undefined,
       };
 
     } catch (error) {
-      const cfnError = handleCfnError(error, request.operation, request.stackName);
+      const cfnError = handleNativeCfnError(error, 'resource-creation-flow');
       errors.push(cfnError);
 
-      console.error('CloudFormation operation failed:', error);
-
-      // Return partial result with error information
       return {
-        operationResult: {
-          validationResult: {
-            isValid: false,
-            validationErrors: [cfnError.message],
-          },
+        createdResource: {
+          stackId: '',
+          stackName: inputData.stackName || '',
+          resourceType: inputData.resourceType,
+          status: 'FAILED',
         },
-        executionErrors: errors,
-        originalRequest: request,
-        validationResult: {
-          isValid: inputData.isValid,
-          validationErrors: inputData.validationErrors,
-          warnings: inputData.warnings,
-        },
+        resourceDetails: undefined,
+        statusChecks,
+        errors,
       };
     }
   },
 });
 
-// Step 3: Result Processing and Recommendations
-const resultProcessing = createStep({
-  id: 'result-processing',
+// Step 2: Resource Update Flow - List → Update → Status Check
+const resourceUpdateFlow = createStep({
+  id: 'resource-update-flow',
   inputSchema: z.object({
-    operationResult: z.object({
-      stackDetails: z.object({
-        stackName: z.string().optional(),
-        stackId: z.string().optional(),
-        stackStatus: z.string().optional(),
-        creationTime: z.string().optional(),
-        lastUpdatedTime: z.string().optional(),
-        description: z.string().optional(),
-        capabilities: z.array(z.string()).optional(),
-        tags: z.array(z.object({
-          key: z.string(),
-          value: z.string(),
-        })).optional(),
-      }).optional(),
-      resources: z.array(z.object({
+    stackId: z.string(),
+    updatedProperties: z.record(z.any()),
+    waitForCompletion: z.boolean().default(true),
+    maxWaitTime: z.number().default(300),
+  }),
+  outputSchema: z.object({
+    updateResult: z.object({
+      stackId: z.string(),
+      stackName: z.string(),
+      status: z.string(),
+      changeSetId: z.string().optional(),
+    }),
+    resourceDetails: z.object({
+      stackId: z.string(),
+      stackName: z.string(),
+      stackStatus: z.string(),
+      resourceDetails: z.object({
         logicalResourceId: z.string(),
         physicalResourceId: z.string().optional(),
         resourceType: z.string(),
         resourceStatus: z.string(),
-        timestamp: z.string().optional(),
-      })).optional(),
-      events: z.array(z.object({
-        eventId: z.string(),
-        stackName: z.string(),
-        logicalResourceId: z.string().optional(),
-        physicalResourceId: z.string().optional(),
-        resourceType: z.string().optional(),
         timestamp: z.string(),
-        resourceStatus: z.string().optional(),
-        resourceStatusReason: z.string().optional(),
-      })).optional(),
+        metadata: z.record(z.any()).optional(),
+      }),
       outputs: z.array(z.object({
         outputKey: z.string(),
         outputValue: z.string(),
         description: z.string().optional(),
       })).optional(),
-      changeSet: z.object({
-        changeSetName: z.string().optional(),
-        changeSetId: z.string().optional(),
-        changes: z.array(z.object({
-          action: z.string(),
-          logicalResourceId: z.string(),
-          resourceType: z.string(),
-          replacement: z.string().optional(),
-        })).optional(),
-      }).optional(),
-      validationResult: z.object({
-        isValid: z.boolean(),
-        validationErrors: z.array(z.string()).optional(),
-        warnings: z.array(z.string()).optional(),
-      }).optional(),
-    }),
-    executionErrors: z.array(z.object({
+    }).optional(),
+    statusChecks: z.array(z.object({
+      timestamp: z.string(),
+      stackStatus: z.string(),
+      isComplete: z.boolean(),
+      isSuccessful: z.boolean(),
+    })),
+    errors: z.array(z.object({
       code: z.string(),
       message: z.string(),
-      severity: z.string(),
+      severity: z.enum(['warning', 'error', 'critical']),
     })).optional(),
-    originalRequest: cfnOperationRequestSchema,
-    validationResult: z.object({
-      isValid: z.boolean(),
-      validationErrors: z.array(z.string()),
-      warnings: z.array(z.string()),
-    }),
   }),
-  outputSchema: cfnOperationResultSchema,
-  execute: async ({ inputData }) => {
-    const startTime = Date.now();
+  execute: async ({ inputData, runtimeContext }) => {
+    const errors: any[] = [];
+    const statusChecks: any[] = [];
 
-    console.log('Processing CloudFormation operation results...');
+    try {
+      // Step 2a: Update the resource
+      console.log(`Updating resource in stack: ${inputData.stackId}`);
+      const updateResult = await updateResourceTool.execute({
+        context: {
+          stackId: inputData.stackId,
+          properties: inputData.updatedProperties,
+        },
+        runtimeContext,
+      });
 
-    // Determine overall status
-    let status: 'success' | 'failed' | 'in-progress' | 'validation-only';
+      const updateResponse = {
+        stackId: updateResult.stackId,
+        stackName: updateResult.stackName,
+        status: updateResult.status,
+        changeSetId: updateResult.changeSetId,
+      };
 
-    if (inputData.originalRequest.dryRun) {
-      status = 'validation-only';
-    } else if (inputData.operationResult.stackDetails?.stackStatus?.includes('FAILED')) {
-      status = 'failed';
-    } else if (inputData.operationResult.stackDetails?.stackStatus?.includes('IN_PROGRESS')) {
-      status = 'in-progress';
-    } else if (inputData.validationResult.isValid) {
-      status = 'success';
-    } else {
-      status = 'failed';
-    }
+      // Step 2b: Wait for completion if requested
+      let resourceDetails = undefined;
+      if (inputData.waitForCompletion) {
+        console.log(`Waiting for update completion: ${updateResult.stackId}`);
+        const completionResult = await waitForStackCompletion(
+          updateResult.stackId,
+          runtimeContext,
+          inputData.maxWaitTime
+        );
 
-    // Generate recommendations based on operation and results
-    const recommendations: string[] = [];
+        statusChecks.push({
+          timestamp: new Date().toISOString(),
+          stackStatus: completionResult.finalStatus,
+          isComplete: completionResult.isComplete,
+          isSuccessful: completionResult.isSuccessful,
+        });
 
-    switch (inputData.originalRequest.operation) {
-      case 'create-stack':
-        recommendations.push('Monitor stack creation progress using describe-stack-events');
-        recommendations.push('Verify all resources are created successfully before proceeding');
-        if (inputData.operationResult.stackDetails?.capabilities?.includes('CAPABILITY_IAM')) {
-          recommendations.push('Review IAM resources created by this stack for security compliance');
+        // Step 2c: Get updated resource details if successful
+        if (completionResult.isComplete && completionResult.isSuccessful) {
+          console.log(`Getting updated resource details: ${updateResult.stackId}`);
+          const detailsResult = await getResourceTool.execute({
+            context: { stackId: updateResult.stackId },
+            runtimeContext,
+          });
+
+          resourceDetails = detailsResult;
         }
-        break;
+      }
 
-      case 'update-stack':
-        recommendations.push('Create a change set first to preview changes before updating');
-        recommendations.push('Monitor update progress and be prepared to rollback if needed');
-        recommendations.push('Test changes in a development environment first');
-        break;
+      return {
+        updateResult: updateResponse,
+        resourceDetails,
+        statusChecks,
+        errors: errors.length > 0 ? errors : undefined,
+      };
 
-      case 'delete-stack':
-        recommendations.push('Ensure all data is backed up before deletion');
-        recommendations.push('Check for any dependent resources that might be affected');
-        recommendations.push('Monitor deletion progress to ensure clean removal');
-        break;
+    } catch (error) {
+      const cfnError = handleNativeCfnError(error, 'resource-update-flow');
+      errors.push(cfnError);
 
-      case 'validate-template':
-        if (inputData.operationResult.validationResult?.isValid) {
-          recommendations.push('Template validation passed - ready for deployment');
-          recommendations.push('Consider creating a change set to preview resource changes');
-        } else {
-          recommendations.push('Fix validation errors before attempting deployment');
-          recommendations.push('Review template syntax and resource configurations');
-        }
-        break;
-
-      case 'create-change-set':
-        recommendations.push('Review the change set carefully before execution');
-        recommendations.push('Pay attention to any resource replacements that may cause downtime');
-        recommendations.push('Execute the change set only after thorough review');
-        break;
-
-      default:
-        recommendations.push('Follow AWS CloudFormation best practices');
-        recommendations.push('Monitor CloudTrail logs for detailed operation history');
+      return {
+        updateResult: {
+          stackId: inputData.stackId,
+          stackName: '',
+          status: 'FAILED',
+          changeSetId: undefined,
+        },
+        resourceDetails: undefined,
+        statusChecks,
+        errors,
+      };
     }
-
-    // Add general recommendations
-    recommendations.push('Use CloudFormation drift detection to ensure stack consistency');
-    recommendations.push('Implement proper tagging strategy for resource management');
-    recommendations.push('Consider using CloudFormation StackSets for multi-account deployments');
-
-    // Add warnings as recommendations
-    if (inputData.validationResult.warnings.length > 0) {
-      recommendations.push(...inputData.validationResult.warnings.map(w => `Warning: ${w}`));
-    }
-
-    const executionTime = Date.now() - startTime;
-    console.log(`Result processing completed in ${executionTime}ms`);
-
-    return {
-      status,
-      operation: inputData.originalRequest.operation,
-      stackName: inputData.originalRequest.stackName,
-      stackId: inputData.operationResult.stackDetails?.stackId,
-      stackStatus: inputData.operationResult.stackDetails?.stackStatus,
-      operationResult: inputData.operationResult,
-      errors: inputData.validationResult.validationErrors.length > 0 ?
-        inputData.validationResult.validationErrors.map(error => ({
-          code: 'VALIDATION_ERROR',
-          message: error,
-          severity: 'error' as const,
-        })) : undefined,
-      recommendations,
-      executionTime,
-    };
   },
 });
 
-// CloudFormation Operations Workflow
+// Step 3: Template Generation Flow - Schema → Template
+const templateGenerationFlow = createStep({
+  id: 'template-generation-flow',
+  inputSchema: z.object({
+    resourceType: z.string(),
+    stackId: z.string().optional(),
+    templateFormat: z.enum(['JSON', 'YAML']).default('JSON'),
+  }),
+  outputSchema: z.object({
+    schemaInfo: z.object({
+      resourceType: z.string(),
+      schema: z.record(z.any()),
+      schemaVersion: z.string().optional(),
+      documentation: z.string().optional(),
+      properties: z.array(z.object({
+        name: z.string(),
+        type: z.string(),
+        required: z.boolean(),
+        description: z.string().optional(),
+      })).optional(),
+    }).optional(),
+    template: z.object({
+      stackId: z.string(),
+      stackName: z.string(),
+      template: z.string(),
+      templateFormat: z.string(),
+      templateSize: z.number(),
+    }).optional(),
+    errors: z.array(z.object({
+      code: z.string(),
+      message: z.string(),
+      severity: z.enum(['warning', 'error', 'critical']),
+    })).optional(),
+  }),
+  execute: async ({ inputData, runtimeContext }) => {
+    const errors: any[] = [];
+
+    try {
+      // Step 3a: Get resource schema information
+      console.log(`Getting schema information for: ${inputData.resourceType}`);
+      const schemaResult = await getResourceSchemaInformationTool.execute({
+        context: { resourceType: inputData.resourceType },
+        runtimeContext,
+      });
+
+      // Step 3b: Generate template if stack ID provided
+      let templateResult = undefined;
+      if (inputData.stackId) {
+        console.log(`Generating template for stack: ${inputData.stackId}`);
+        const templateResponse = await createTemplateTool.execute({
+          context: {
+            stackId: inputData.stackId,
+            templateFormat: inputData.templateFormat,
+          },
+          runtimeContext,
+        });
+
+        templateResult = templateResponse;
+      }
+
+      return {
+        schemaInfo: schemaResult,
+        template: templateResult,
+        errors: errors.length > 0 ? errors : undefined,
+      };
+
+    } catch (error) {
+      const cfnError = handleNativeCfnError(error, 'template-generation-flow');
+      errors.push(cfnError);
+
+      return {
+        schemaInfo: undefined,
+        template: undefined,
+        errors,
+      };
+    }
+  },
+});
+
+// Step 4: Resource Deletion Flow - Delete → Status Check
+const resourceDeletionFlow = createStep({
+  id: 'resource-deletion-flow',
+  inputSchema: z.object({
+    stackId: z.string(),
+    retainResources: z.array(z.string()).optional(),
+    waitForCompletion: z.boolean().default(true),
+    maxWaitTime: z.number().default(300),
+  }),
+  outputSchema: z.object({
+    deletionResult: z.object({
+      stackId: z.string(),
+      stackName: z.string(),
+      status: z.string(),
+      deletionTime: z.string(),
+    }),
+    statusChecks: z.array(z.object({
+      timestamp: z.string(),
+      stackStatus: z.string(),
+      isComplete: z.boolean(),
+      isSuccessful: z.boolean(),
+    })),
+    errors: z.array(z.object({
+      code: z.string(),
+      message: z.string(),
+      severity: z.enum(['warning', 'error', 'critical']),
+    })).optional(),
+  }),
+  execute: async ({ inputData, runtimeContext }) => {
+    const errors: any[] = [];
+    const statusChecks: any[] = [];
+
+    try {
+      // Step 4a: Delete the resource
+      console.log(`Deleting resource stack: ${inputData.stackId}`);
+      const deleteResult = await deleteResourceTool.execute({
+        context: {
+          stackId: inputData.stackId,
+          retainResources: inputData.retainResources,
+        },
+        runtimeContext,
+      });
+
+      const deletionResponse = {
+        stackId: deleteResult.stackId,
+        stackName: deleteResult.stackName,
+        status: deleteResult.status,
+        deletionTime: deleteResult.deletionTime,
+      };
+
+      // Step 4b: Wait for completion if requested
+      if (inputData.waitForCompletion) {
+        console.log(`Waiting for deletion completion: ${deleteResult.stackId}`);
+        const completionResult = await waitForStackCompletion(
+          deleteResult.stackId,
+          runtimeContext,
+          inputData.maxWaitTime
+        );
+
+        statusChecks.push({
+          timestamp: new Date().toISOString(),
+          stackStatus: completionResult.finalStatus,
+          isComplete: completionResult.isComplete,
+          isSuccessful: completionResult.isSuccessful,
+        });
+      }
+
+      return {
+        deletionResult: deletionResponse,
+        statusChecks,
+        errors: errors.length > 0 ? errors : undefined,
+      };
+
+    } catch (error) {
+      const cfnError = handleNativeCfnError(error, 'resource-deletion-flow');
+      errors.push(cfnError);
+
+      return {
+        deletionResult: {
+          stackId: inputData.stackId,
+          stackName: '',
+          status: 'FAILED',
+          deletionTime: new Date().toISOString(),
+        },
+        statusChecks,
+        errors,
+      };
+    }
+  },
+});
+
+// Step 5: List and Manage Resources Flow
+const listAndManageResourcesFlow = createStep({
+  id: 'list-and-manage-resources-flow',
+  inputSchema: z.object({
+    resourceTypeFilter: z.string().optional(),
+    maxResults: z.number().default(10),
+  }),
+  outputSchema: z.object({
+    resources: z.array(z.object({
+      stackId: z.string(),
+      stackName: z.string(),
+      resourceType: z.string(),
+      stackStatus: z.string(),
+      creationTime: z.string().optional(),
+      lastUpdatedTime: z.string().optional(),
+      tags: z.record(z.string()).optional(),
+    })),
+    totalCount: z.number(),
+    hasMore: z.boolean(),
+    errors: z.array(z.object({
+      code: z.string(),
+      message: z.string(),
+      severity: z.enum(['warning', 'error', 'critical']),
+    })).optional(),
+  }),
+  execute: async ({ inputData, runtimeContext }) => {
+    const errors: any[] = [];
+
+    try {
+      console.log('Listing managed CloudFormation resources...');
+      const listResult = await listResourcesTool.execute({
+        context: {
+          resourceTypeFilter: inputData.resourceTypeFilter,
+          maxResults: inputData.maxResults,
+        },
+        runtimeContext,
+      });
+
+      return {
+        resources: listResult.resources,
+        totalCount: listResult.totalCount,
+        hasMore: listResult.hasMore,
+        errors: errors.length > 0 ? errors : undefined,
+      };
+
+    } catch (error) {
+      const cfnError = handleNativeCfnError(error, 'list-and-manage-resources-flow');
+      errors.push(cfnError);
+
+      return {
+        resources: [],
+        totalCount: 0,
+        hasMore: false,
+        errors,
+      };
+    }
+  },
+});
+
+// CloudFormation Resource Lifecycle Workflows
+export const cfnResourceCreationWorkflow = createWorkflow({
+  id: 'cfn-resource-creation-workflow',
+  inputSchema: z.object({
+    resourceType: z.string(),
+    resourceProperties: z.record(z.any()),
+    stackName: z.string().optional(),
+    waitForCompletion: z.boolean().default(true),
+    maxWaitTime: z.number().default(300),
+  }),
+  outputSchema: cfnResourceLifecycleResultSchema,
+})
+  .then(resourceCreationFlow);
+
+export const cfnResourceUpdateWorkflow = createWorkflow({
+  id: 'cfn-resource-update-workflow',
+  inputSchema: z.object({
+    stackId: z.string(),
+    updatedProperties: z.record(z.any()),
+    waitForCompletion: z.boolean().default(true),
+    maxWaitTime: z.number().default(300),
+  }),
+  outputSchema: cfnResourceLifecycleResultSchema,
+})
+  .then(resourceUpdateFlow);
+
+export const cfnTemplateGenerationWorkflow = createWorkflow({
+  id: 'cfn-template-generation-workflow',
+  inputSchema: z.object({
+    resourceType: z.string(),
+    stackId: z.string().optional(),
+    templateFormat: z.enum(['JSON', 'YAML']).default('JSON'),
+  }),
+  outputSchema: cfnResourceLifecycleResultSchema,
+})
+  .then(templateGenerationFlow);
+
+export const cfnResourceDeletionWorkflow = createWorkflow({
+  id: 'cfn-resource-deletion-workflow',
+  inputSchema: z.object({
+    stackId: z.string(),
+    retainResources: z.array(z.string()).optional(),
+    waitForCompletion: z.boolean().default(true),
+    maxWaitTime: z.number().default(300),
+  }),
+  outputSchema: cfnResourceLifecycleResultSchema,
+})
+  .then(resourceDeletionFlow);
+
+export const cfnResourceListingWorkflow = createWorkflow({
+  id: 'cfn-resource-listing-workflow',
+  inputSchema: z.object({
+    resourceTypeFilter: z.string().optional(),
+    maxResults: z.number().default(10),
+  }),
+  outputSchema: cfnResourceLifecycleResultSchema,
+})
+  .then(listAndManageResourcesFlow);
+
+// Main operation router step
+const operationRouter = createStep({
+  id: 'operation-router',
+  inputSchema: cfnResourceLifecycleRequestSchema,
+  outputSchema: cfnResourceLifecycleResultSchema,
+  execute: async ({ inputData, runtimeContext }) => {
+    const startTime = Date.now();
+    const { operation } = inputData;
+
+    try {
+      let result: any;
+
+      switch (operation) {
+        case 'create-resource-lifecycle':
+          // Create → Status Check → Get Details flow
+          const createResult = await createResourceTool.execute({
+            context: {
+              resourceType: inputData.resourceType!,
+              properties: inputData.resourceProperties!,
+              stackName: inputData.stackName,
+            },
+            runtimeContext,
+          });
+
+          let resourceDetails = undefined;
+          const statusChecks = [];
+
+          if (inputData.waitForCompletion) {
+            const completionResult = await waitForStackCompletion(
+              createResult.stackId,
+              runtimeContext,
+              inputData.maxWaitTime
+            );
+
+            statusChecks.push({
+              timestamp: new Date().toISOString(),
+              stackStatus: completionResult.finalStatus,
+              isComplete: completionResult.isComplete,
+              isSuccessful: completionResult.isSuccessful,
+            });
+
+            if (completionResult.isComplete && completionResult.isSuccessful) {
+              resourceDetails = await getResourceTool.execute({
+                context: { stackId: createResult.stackId },
+                runtimeContext,
+              });
+            }
+          }
+
+          result = {
+            createdResource: createResult,
+            resourceDetails,
+            statusChecks,
+          };
+          break;
+
+        case 'update-resource-lifecycle':
+          // Update → Status Check flow
+          const updateResult = await updateResourceTool.execute({
+            context: {
+              stackId: inputData.stackId!,
+              properties: inputData.updatedProperties!,
+            },
+            runtimeContext,
+          });
+
+          let updatedResourceDetails = undefined;
+          const updateStatusChecks = [];
+
+          if (inputData.waitForCompletion) {
+            const updateCompletionResult = await waitForStackCompletion(
+              updateResult.stackId,
+              runtimeContext,
+              inputData.maxWaitTime
+            );
+
+            updateStatusChecks.push({
+              timestamp: new Date().toISOString(),
+              stackStatus: updateCompletionResult.finalStatus,
+              isComplete: updateCompletionResult.isComplete,
+              isSuccessful: updateCompletionResult.isSuccessful,
+            });
+
+            if (updateCompletionResult.isComplete && updateCompletionResult.isSuccessful) {
+              updatedResourceDetails = await getResourceTool.execute({
+                context: { stackId: updateResult.stackId },
+                runtimeContext,
+              });
+            }
+          }
+
+          result = {
+            updateResult,
+            resourceDetails: updatedResourceDetails,
+            statusChecks: updateStatusChecks,
+          };
+          break;
+
+        case 'template-generation-flow':
+          // Schema → Template flow
+          const schemaResult = await getResourceSchemaInformationTool.execute({
+            context: { resourceType: inputData.resourceType! },
+            runtimeContext,
+          });
+
+          let templateResult = undefined;
+          if (inputData.stackId) {
+            templateResult = await createTemplateTool.execute({
+              context: {
+                stackId: inputData.stackId,
+                templateFormat: inputData.templateFormat,
+              },
+              runtimeContext,
+            });
+          }
+
+          result = {
+            schemaInfo: schemaResult,
+            template: templateResult,
+          };
+          break;
+
+        case 'delete-resource-lifecycle':
+          // Delete → Status Check flow
+          const deleteResult = await deleteResourceTool.execute({
+            context: {
+              stackId: inputData.stackId!,
+              retainResources: [],
+            },
+            runtimeContext,
+          });
+
+          const deleteStatusChecks = [];
+
+          if (inputData.waitForCompletion) {
+            const deleteCompletionResult = await waitForStackCompletion(
+              deleteResult.stackId,
+              runtimeContext,
+              inputData.maxWaitTime
+            );
+
+            deleteStatusChecks.push({
+              timestamp: new Date().toISOString(),
+              stackStatus: deleteCompletionResult.finalStatus,
+              isComplete: deleteCompletionResult.isComplete,
+              isSuccessful: deleteCompletionResult.isSuccessful,
+            });
+          }
+
+          result = {
+            deletionResult: deleteResult,
+            statusChecks: deleteStatusChecks,
+          };
+          break;
+
+        case 'list-and-manage-resources':
+          // List resources flow
+          const listResult = await listResourcesTool.execute({
+            context: {
+              resourceTypeFilter: inputData.resourceTypeFilter,
+              maxResults: inputData.maxResults,
+            },
+            runtimeContext,
+          });
+
+          result = {
+            resources: listResult.resources,
+            totalCount: listResult.totalCount,
+            hasMore: listResult.hasMore,
+          };
+          break;
+
+        default:
+          throw new Error(`Unsupported operation: ${operation}`);
+      }
+
+      return {
+        ...result,
+        status: 'completed' as const,
+        operation,
+        executionTime: Date.now() - startTime,
+        stepsCompleted: [operation],
+      };
+
+    } catch (error) {
+      const cfnError = handleNativeCfnError(error, 'operation-router');
+
+      return {
+        status: 'failed' as const,
+        operation,
+        executionTime: Date.now() - startTime,
+        stepsCompleted: [],
+        errors: [cfnError],
+      };
+    }
+  },
+});
+
+// Main comprehensive workflow that can handle all operations
 export const cfnOperationsWorkflow = createWorkflow({
   id: 'cfn-operations-workflow',
-  inputSchema: cfnOperationRequestSchema,
-  outputSchema: cfnOperationResultSchema,
+  inputSchema: cfnResourceLifecycleRequestSchema,
+  outputSchema: cfnResourceLifecycleResultSchema,
 })
-  .then(preOperationValidation)
-  .then(cfnAgentExecution)
-  .then(resultProcessing);
+  .then(operationRouter);
 
+// Commit all workflows
+cfnResourceCreationWorkflow.commit();
+cfnResourceUpdateWorkflow.commit();
+cfnTemplateGenerationWorkflow.commit();
+cfnResourceDeletionWorkflow.commit();
+cfnResourceListingWorkflow.commit();
 cfnOperationsWorkflow.commit();
 
 /**
- * CloudFormation Operations Workflow
+ * CloudFormation Resource Lifecycle Workflows
  *
- * This workflow provides direct access to CloudFormation operations through the cfnAgent
- * without requiring coreAgent interaction. It supports all major CloudFormation operations
- * with comprehensive validation, error handling, and result processing.
+ * This module provides comprehensive CloudFormation resource lifecycle management through
+ * native TypeScript tools instead of MCP-based implementations. It demonstrates the complete
+ * CloudFormation resource lifecycle using iterative flows that showcase how the 8 native tools
+ * work together in realistic Infrastructure-as-Code scenarios.
  *
  * Supported Operations:
- * - create-stack: Create a new CloudFormation stack
- * - update-stack: Update an existing stack
- * - delete-stack: Delete a stack and its resources
- * - describe-stack: Get detailed information about a stack
- * - list-stacks: List all stacks in the region
- * - validate-template: Validate a CloudFormation template
- * - get-template: Retrieve the template for an existing stack
- * - create-change-set: Create a change set for stack updates
- * - execute-change-set: Execute a previously created change set
- * - describe-stack-events: Get events for a stack
- * - describe-stack-resources: Get resources for a stack
+ * - create-resource-lifecycle: Create → Status Check → Get Details flow
+ * - update-resource-lifecycle: Update → Status Check → Get Details flow
+ * - template-generation-flow: Schema → Template generation flow
+ * - delete-resource-lifecycle: Delete → Status Check flow
+ * - list-and-manage-resources: List and filter managed resources
+ *
+ * Native Tools Used:
+ * - createResource: Create AWS resources via CloudFormation stacks
+ * - getResource: Retrieve resource details from stacks
+ * - updateResource: Update resources by modifying stack templates
+ * - deleteResource: Delete resources by deleting stacks
+ * - listResources: List all managed resources with filtering
+ * - getRequestStatus: Check stack operation status
+ * - createTemplate: Generate CloudFormation templates from stacks
+ * - getResourceSchemaInformation: Retrieve CloudFormation resource schemas
  *
  * Features:
- * - Pre-operation validation with detailed error checking
- * - Comprehensive error handling with retry mechanisms
- * - Support for dry-run operations
- * - Detailed result processing with recommendations
- * - TypeScript type safety throughout the workflow
- * - Performance monitoring and logging
+ * - Native TypeScript tool integration (no MCP dependencies)
+ * - Stack-per-resource architecture for precise lifecycle control
+ * - Comprehensive error handling with detailed feedback
+ * - Asynchronous operation tracking with status polling
+ * - Enhanced AWS service limit and credential management
+ * - TypeScript type safety throughout all workflows
+ * - Performance monitoring and execution tracking
  *
- * Usage Example:
+ * Usage Examples:
  * ```typescript
- * // Create a new stack
+ * // Create a new S3 bucket resource
  * const createResult = await cfnOperationsWorkflow.execute({
- *   operation: 'create-stack',
- *   stackName: 'my-application-stack',
- *   templateBody: JSON.stringify(myTemplate),
- *   parameters: [
- *     { key: 'Environment', value: 'production' },
- *     { key: 'InstanceType', value: 't3.micro' }
- *   ],
- *   capabilities: ['CAPABILITY_IAM'],
- *   tags: { Project: 'MyApp', Owner: 'DevTeam' },
- *   timeoutInMinutes: 30,
- *   dryRun: false
+ *   operation: 'create-resource-lifecycle',
+ *   resourceType: 'AWS::S3::Bucket',
+ *   resourceProperties: {
+ *     BucketName: 'my-application-bucket',
+ *     VersioningConfiguration: { Status: 'Enabled' },
+ *     PublicAccessBlockConfiguration: {
+ *       BlockPublicAcls: true,
+ *       BlockPublicPolicy: true,
+ *       IgnorePublicAcls: true,
+ *       RestrictPublicBuckets: true
+ *     }
+ *   },
+ *   waitForCompletion: true,
+ *   maxWaitTime: 300
  * });
  *
- * // Validate a template
- * const validateResult = await cfnOperationsWorkflow.execute({
- *   operation: 'validate-template',
- *   templateUrl: 'https://s3.amazonaws.com/my-bucket/template.yaml',
- *   dryRun: true
+ * // Update an existing resource
+ * const updateResult = await cfnOperationsWorkflow.execute({
+ *   operation: 'update-resource-lifecycle',
+ *   stackId: 'arn:aws:cloudformation:us-east-1:123456789012:stack/my-stack/uuid',
+ *   updatedProperties: {
+ *     VersioningConfiguration: { Status: 'Suspended' }
+ *   },
+ *   waitForCompletion: true
  * });
  *
- * // Describe stack status
- * const statusResult = await cfnOperationsWorkflow.execute({
- *   operation: 'describe-stack',
- *   stackName: 'my-application-stack'
+ * // Generate template and get schema information
+ * const templateResult = await cfnOperationsWorkflow.execute({
+ *   operation: 'template-generation-flow',
+ *   resourceType: 'AWS::S3::Bucket',
+ *   stackId: 'arn:aws:cloudformation:us-east-1:123456789012:stack/my-stack/uuid',
+ *   templateFormat: 'JSON'
+ * });
+ *
+ * // List managed resources
+ * const listResult = await cfnOperationsWorkflow.execute({
+ *   operation: 'list-and-manage-resources',
+ *   resourceTypeFilter: 'AWS::S3::Bucket',
+ *   maxResults: 20
+ * });
+ *
+ * // Delete a resource
+ * const deleteResult = await cfnOperationsWorkflow.execute({
+ *   operation: 'delete-resource-lifecycle',
+ *   stackId: 'arn:aws:cloudformation:us-east-1:123456789012:stack/my-stack/uuid',
+ *   waitForCompletion: true
  * });
  * ```
  */

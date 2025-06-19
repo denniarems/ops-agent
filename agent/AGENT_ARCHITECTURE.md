@@ -17,13 +17,15 @@ The ZapGap agent system is built using the Mastra framework and consists of spec
 
 ### 2. CloudFormation Agent (`cfnAgent`)
 - **Purpose**: Specialized AWS CloudFormation operations and infrastructure-as-code management
-- **MCP Server**: `awslabs.cfn-mcp-server`
+- **Implementation**: Native TypeScript tools with AWS SDK integration
 - **Capabilities**:
-  - Create, read, update, and delete AWS resources via CloudFormation Cloud Control API
-  - Manage CloudFormation stacks and templates
+  - Create, read, update, and delete AWS resources via CloudFormation stacks
+  - Manage CloudFormation stacks with dedicated stack-per-resource approach
   - Stack lifecycle management (create, update, delete, rollback)
   - Multi-tenant support with automatic resource tagging
   - Security and compliance enforcement
+  - Enhanced error handling and AWS service limit management
+  - Native tool integration for improved performance and debugging
 
 ### 3. Documentation Agent (`documentationAgent`)
 - **Purpose**: AWS documentation and knowledge retrieval
@@ -44,12 +46,14 @@ The ZapGap agent system is built using the Mastra framework and consists of spec
 - Purpose: Planning and orchestration
 ```
 
-### CloudFormation MCP Client (`cfnMcpClient`)
+### CloudFormation Native Tools (`cloudFormationTools`)
 ```typescript
-// File: agent/src/mastra/mcps/cfn.ts
-- Server: awslabs.cfn-mcp-server
-- Purpose: CloudFormation operations
-- Features: AWS credentials, region config, readonly mode
+// File: agent/src/mastra/tools/cfn-tools.ts
+- Implementation: Native TypeScript tools with AWS SDK
+- Purpose: CloudFormation operations via direct AWS API calls
+- Features: AWS STS credentials, region config, readonly mode, enhanced error handling
+- Tools: create_resource, get_resource, update_resource, delete_resource,
+         list_resources, get_request_status, create_template, get_resource_schema_information
 ```
 
 ### Documentation MCP Client (`documentationMcpClient`)
@@ -91,7 +95,10 @@ Use the **Core Planning Agent** for:
 
 All agents share the same memory configuration using Upstash for storage and vector search, ensuring consistent context and learning across the system.
 
-Environment variables control MCP server behavior:
+Environment variables control agent behavior:
 - `AWS_REGION`: AWS region for operations
-- `CFN_MCP_SERVER_READONLY`: Enable readonly mode for CFN operations
+- `CFN_MCP_SERVER_READONLY`: Enable readonly mode for CloudFormation operations
+- `CFN_MCP_SERVER_TIMEOUT`: Timeout for CloudFormation operations (default: 30000ms)
+- `CFN_MCP_SERVER_MAX_RETRIES`: Maximum retry attempts for failed operations (default: 3)
+- `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`: AWS credentials for STS token generation
 - `AWS_DOCUMENTATION_PARTITION`: Documentation partition (default: 'aws')
