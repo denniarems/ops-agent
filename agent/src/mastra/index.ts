@@ -113,16 +113,16 @@ export const awsInfrastructureNetwork = new AgentNetwork({
 
 export const mastra = new Mastra({
   agents: { coreAgent, cfnAgent, documentationAgent },
-  workflows: {
-    documentationAccessWorkflow,
-    cfnOperationsWorkflow
-  },
+  // workflows: {
+  //   documentationAccessWorkflow,
+  //   cfnOperationsWorkflow
+  // },
   networks: {
     awsInfrastructureNetwork,
   },
   storage: upstashStorage as any,
   logger: new PinoLogger({
     name: 'Mastra',
-    level: 'info',
+    level: 'debug',
   }),
 });

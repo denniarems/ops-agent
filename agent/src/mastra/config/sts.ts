@@ -17,6 +17,11 @@ export async function getTemporaryCredentials() {
         const response = await client.send(command);
         if (response.Credentials) {
             const { AccessKeyId, SecretAccessKey, SessionToken } = response.Credentials;
+            console.log(`🚀 ~ getTemporaryCredentials `, {
+                AWS_ACCESS_KEY_ID: AccessKeyId,
+                AWS_SECRET_ACCESS_KEY: SecretAccessKey,
+                AWS_SESSION_TOKEN: SessionToken
+            })
             return {
                 AWS_ACCESS_KEY_ID: AccessKeyId,
                 AWS_SECRET_ACCESS_KEY: SecretAccessKey,

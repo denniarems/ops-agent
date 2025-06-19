@@ -3,6 +3,7 @@ import { Agent } from '@mastra/core/agent';
 import { Memory } from '@mastra/memory';
 import { UpstashStore, UpstashVector } from '@mastra/upstash';
 import { cfnMcpClient } from '../mcps/cfn';
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 
 // Initialize memory with Upstash storage and vector search
 const memory = new Memory({
@@ -19,6 +20,9 @@ const memory = new Memory({
   },
 });
 
+const openrouter = createOpenRouter({
+    apiKey: process.env.OPENROUTER_API_KEY,
+})
 
 export const cfnAgent = new Agent({
   name: 'AWS CloudFormation Agent',
@@ -73,7 +77,8 @@ export const cfnAgent = new Agent({
     Use CloudFormation MCP tools exclusively for all infrastructure operations.
     Prioritize security, cost optimization, and operational excellence.
   `,
-  model: anthropic('claude-4-sonnet-20250514'),
+
+  model: openrouter('mistralai/magistral-medium-2506'),
   tools: await cfnMcpClient.getTools(),
   memory,
 });
