@@ -1,0 +1,58 @@
+import { anthropic } from '@ai-sdk/anthropic';
+import { Agent } from '@mastra/core/agent';
+import { Memory } from '@mastra/memory';
+import { UpstashStore, UpstashVector } from '@mastra/upstash';
+import { coreMcpClient } from '../mcps/core';
+
+// Initialize memory with Upstash storage and vector search
+const memory = new Memory({
+  storage: new UpstashStore({
+    url: process.env.UPSTASH_REDIS_REST_URL as string,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN as string,
+  }) as any,
+  vector: new UpstashVector({
+    url: process.env.UPSTASH_VECTOR_REST_URL as string,
+    token: process.env.UPSTASH_VECTOR_REST_TOKEN as string,
+  }) as any,
+  options: {
+    lastMessages: 20,
+  },
+});
+
+
+export const coreAgent = new Agent({
+  name: 'AWS Core Planning Agent',
+  instructions: `
+    AWS Core MCP Server agent for intelligent planning and orchestration of AWS solutions.
+
+    Core Capabilities:
+    • Planning and guidance for orchestrating AWS Labs MCP Servers
+    • Prompt understanding and intelligent task decomposition
+    • Centralized configuration and coordination
+    • Federation to other specialized MCP servers as needed
+
+    Planning Process:
+    • Analyze user requirements and break down complex AWS tasks
+    • Recommend appropriate AWS MCP servers for specific use cases
+    • Provide step-by-step guidance for AWS solution implementation
+    • Coordinate between multiple MCP servers when needed
+
+    Best Practices:
+    • Start with understanding the full scope of user requirements
+    • Recommend the most appropriate AWS services and MCP servers
+    • Provide clear, actionable plans with proper sequencing
+    • Consider security, cost optimization, and best practices
+    • Guide users through proper AWS resource management
+
+    Response Flow:
+    1. Understand and analyze the user's AWS requirements
+    2. Create a comprehensive plan using appropriate MCP servers
+    3. Provide clear guidance and next steps
+    4. Coordinate with specialized MCP servers as needed
+
+    Use the Core MCP Server as the starting point for every AWS project and orchestrate other specialized MCP servers based on specific needs.
+  `,
+  model: anthropic('claude-4-sonnet-20250514'),
+  tools: await coreMcpClient.getTools(),
+  memory,
+});

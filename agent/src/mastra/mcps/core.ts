@@ -1,0 +1,15 @@
+import { MCPClient } from "@mastra/mcp";
+
+export const coreMcpClient = new MCPClient({
+    servers: {
+        "aws-core-mcp-server": {
+            command: "uvx",
+            args: [
+                "awslabs.core-mcp-server@latest"
+            ],
+            env: {
+                FASTMCP_LOG_LEVEL: "ERROR",
+            }
+        },
+    },
+});

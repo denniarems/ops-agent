@@ -8,7 +8,7 @@ const CFN_MCP_SERVER_READONLY = process.env.CFN_MCP_SERVER_READONLY === 'true';
 const CFN_MCP_SERVER_TIMEOUT = parseInt(process.env.CFN_MCP_SERVER_TIMEOUT || '30000');
 const CFN_MCP_SERVER_MAX_RETRIES = parseInt(process.env.CFN_MCP_SERVER_MAX_RETRIES || '3');
 
-// CloudFormation MCP Client using uvx
+// CloudFormation MCP Client - focused on CFN operations only
 export const cfnMcpClient = new MCPClient({
     servers: {
         "cfn-mcp-server": {
@@ -23,30 +23,11 @@ export const cfnMcpClient = new MCPClient({
                 ... await getTemporaryCredentials()
             },
             timeout: CFN_MCP_SERVER_TIMEOUT,
-        },
-        "aws-core-mcp-server": {
-            command: "uvx",
-            args: [
-                "awslabs.core-mcp-server@latest"
-            ],
-            env: {
-                FASTMCP_LOG_LEVEL: "ERROR",
-            }
-        },
-        "aws-documentation": {
-            command: "uvx",
-            args: [
-                "awslabs.aws-documentation-mcp-server@latest"
-            ],
-            env: {
-                FASTMCP_LOG_LEVEL: "ERROR",
-                AWS_DOCUMENTATION_PARTITION: "aws",
-            }
         }
     },
 });
 
-// Export config
+// Export CloudFormation-specific config
 export const cfnMcpConfig = {
     readonly: CFN_MCP_SERVER_READONLY,
     timeout: CFN_MCP_SERVER_TIMEOUT,
