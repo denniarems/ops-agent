@@ -13,6 +13,6 @@ bun install
 
 # Build the project
 echo "Building the project..."
-bun run build:shared && bun run build:client
+bun run build:shared && bun run build:client && bun run build:server && bun run build:agent
 
 echo "Build completed successfully!"
