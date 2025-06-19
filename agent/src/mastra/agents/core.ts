@@ -4,6 +4,7 @@ import { UpstashStore, UpstashVector } from '@mastra/upstash';
 import { coreTools } from '../tools/core-tools';
 import { openrouter } from '../config/model';
 import { documentationAccessWorkflow } from '../workflows/documentation-access';
+import { getAWSSecurityConfigFromContext } from '../utils/aws-runtime-context';
 
 // Initialize memory with Upstash storage and vector search
 const memory = new Memory({
@@ -23,8 +24,17 @@ const memory = new Memory({
 
 export const coreAgent = new Agent({
   name: 'AWS Core Planning Agent',
-  instructions: `
-    AWS Core Planning agent for intelligent planning and orchestration of AWS solutions.
+  tools({ runtimeContext: _runtimeContext }) {
+    // Core tools are runtime context-aware for AWS coordination
+    return coreTools;
+  },
+  instructions: ({ runtimeContext }) => {
+    // Dynamic instructions based on runtime context
+    const securityConfig = runtimeContext ? getAWSSecurityConfigFromContext(runtimeContext) : null;
+    const tenantInfo = securityConfig ? ` for tenant "${securityConfig.tenantId}" in ${securityConfig.environment} environment` : '';
+
+    return `
+    AWS Core Planning agent for intelligent planning and orchestration of AWS solutions${tenantInfo}.
 
     Core Capabilities:
     • Planning and guidance for orchestrating AWS solutions
@@ -52,11 +62,11 @@ export const coreAgent = new Agent({
     4. Coordinate with specialized agents and services as needed
 
     Use the native Core tools as the starting point for every AWS project and orchestrate other specialized services based on specific needs.
-  `,
+  `;
+  },
   model: openrouter('mistralai/magistral-medium-2506:thinking'),
   workflows: {
     documentationAccessWorkflow,
   },
-  tools: coreTools,
   memory,
 });

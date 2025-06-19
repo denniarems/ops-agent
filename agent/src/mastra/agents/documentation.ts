@@ -3,6 +3,7 @@ import { Memory } from '@mastra/memory';
 import { UpstashStore, UpstashVector } from '@mastra/upstash';
 import { documentationTools } from '../tools/documentation-tools';
 import { openrouter } from '../config/model';
+import { getAWSConfigFromContext } from '../utils/aws-runtime-context';
 
 // Initialize memory with Upstash storage and vector search
 const memory = new Memory({
@@ -21,8 +22,17 @@ const memory = new Memory({
 
 export const documentationAgent = new Agent({
   name: 'AWS Documentation Agent',
-  instructions: `
-    Specialized AWS documentation and knowledge retrieval agent for providing comprehensive AWS guidance.
+  tools({ runtimeContext: _runtimeContext }) {
+    // Documentation tools are runtime context-aware for AWS-specific configurations
+    return documentationTools;
+  },
+  instructions: ({ runtimeContext }) => {
+    // Dynamic instructions based on runtime context
+    const config = runtimeContext ? getAWSConfigFromContext(runtimeContext) : null;
+    const regionInfo = config ? ` (focused on ${config.region} region)` : '';
+
+    return `
+    Specialized AWS documentation and knowledge retrieval agent for providing comprehensive AWS guidance${regionInfo}.
 
     Core Capabilities:
     • Access real-time AWS documentation and API references
@@ -83,8 +93,8 @@ export const documentationAgent = new Agent({
 
     Use the native AWS Documentation tools to access the most current and accurate AWS information.
     Always prioritize official AWS documentation and best practices in responses.
-  `,
+  `;
+  },
   model: openrouter('mistralai/magistral-medium-2506:thinking'),
-  tools: documentationTools,
   memory,
 });

@@ -10,7 +10,6 @@ import { cfnOperationsWorkflow } from './workflows/cfn-operations';
 
 import { UpstashStore } from "@mastra/upstash";
 import { AgentNetwork } from '@mastra/core/network';
-import { anthropic } from '@ai-sdk/anthropic';
 import { openrouter } from '@openrouter/ai-sdk-provider';
 
 const upstashStorage = new UpstashStore({
@@ -125,6 +124,6 @@ export const mastra = new Mastra({
   storage: upstashStorage as any,
   logger: new PinoLogger({
     name: 'Mastra',
-    level: 'debug',
+    level: 'info',
   }),
 });

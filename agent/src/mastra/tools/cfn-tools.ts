@@ -13,14 +13,19 @@ import {
   CreateStackCommandInput,
   UpdateStackCommandInput,
   StackStatus,
-  StackResourceDetail,
-  Stack,
-  StackSummary,
   DescribeTypeCommandInput,
-  DescribeTypeCommandOutput,
   Capability
 } from '@aws-sdk/client-cloudformation';
-import { getTemporaryCredentials } from '../config/sts';
+import { RuntimeContext } from '@mastra/core/runtime-context';
+import { getTemporaryCredentials, getTemporaryCredentialsFromContext } from '../config/sts';
+import { AWSRuntimeContext } from '../types/aws-runtime-context';
+import {
+  getAWSConfigFromContext
+} from '../utils/aws-runtime-context';
+import {
+  handleAWSError,
+  validateRuntimeContextSafely
+} from '../utils/aws-error-handling';
 import { v4 as uuidv4 } from 'uuid';
 
 // Environment configuration
@@ -44,6 +49,40 @@ export async function createCloudFormationClient(): Promise<CloudFormationClient
     },
     maxAttempts: CFN_MAX_RETRIES,
   });
+}
+
+// Enhanced CloudFormation client factory with runtime context support
+export async function createCloudFormationClientFromContext(
+  runtimeContext: RuntimeContext<AWSRuntimeContext>
+): Promise<CloudFormationClient> {
+  try {
+    // Validate runtime context first
+    const validation = validateRuntimeContextSafely(runtimeContext);
+    if (!validation.isValid) {
+      throw validation.error || new Error('Invalid runtime context');
+    }
+
+    // Log warnings if any
+    if (validation.warnings.length > 0) {
+      console.warn('Runtime context warnings:', validation.warnings);
+    }
+
+    // Get credentials with error handling
+    const credentials = await getTemporaryCredentialsFromContext(runtimeContext);
+    const config = getAWSConfigFromContext(runtimeContext);
+
+    return new CloudFormationClient({
+      region: config.region,
+      credentials: {
+        accessKeyId: credentials.accessKeyId,
+        secretAccessKey: credentials.secretAccessKey,
+        sessionToken: credentials.sessionToken,
+      },
+      maxAttempts: config.maxRetries,
+    });
+  } catch (error) {
+    throw handleAWSError(error, 'CloudFormation client creation');
+  }
 }
 
 // Utility function to generate unique stack names
@@ -151,7 +190,7 @@ const createResourceTool = createTool({
   description: 'Create an AWS resource by generating a CloudFormation template and creating a stack. Each resource is managed in its own dedicated stack for precise lifecycle control.',
   inputSchema: CreateResourceInputSchema,
   outputSchema: CreateResourceOutputSchema,
-  execute: async ({ context }) => {
+  execute: async ({ context, runtimeContext }) => {
     if (CFN_READONLY) {
       throw new Error('CloudFormation tools are in read-only mode. Resource creation is disabled.');
     }
@@ -159,8 +198,10 @@ const createResourceTool = createTool({
     const { resourceType, properties, stackName } = context;
 
     try {
-      // Create CloudFormation client
-      const cfnClient = await createCloudFormationClient();
+      // Create CloudFormation client using runtime context if available, fallback to legacy method
+      const cfnClient = runtimeContext
+        ? await createCloudFormationClientFromContext(runtimeContext)
+        : await createCloudFormationClient();
 
       // Generate stack name if not provided
       const finalStackName = stackName || generateStackName(resourceType);
@@ -244,11 +285,13 @@ const getResourceTool = createTool({
   description: 'Retrieve details of a specific AWS resource by describing its CloudFormation stack. Provides comprehensive information about the resource status, physical ID, and stack outputs.',
   inputSchema: GetResourceInputSchema,
   outputSchema: GetResourceOutputSchema,
-  execute: async ({ context }) => {
+  execute: async ({ context, runtimeContext }) => {
     const { stackId } = context;
 
     try {
-      const cfnClient = await createCloudFormationClient();
+      const cfnClient = runtimeContext
+        ? await createCloudFormationClientFromContext(runtimeContext)
+        : await createCloudFormationClient();
 
       // Get stack details
       const describeStacksCommand = new DescribeStacksCommand({
@@ -331,7 +374,7 @@ const updateResourceTool = createTool({
   description: 'Update an AWS resource by modifying its CloudFormation stack template. Retrieves the current template, updates the resource properties, and applies the changes.',
   inputSchema: UpdateResourceInputSchema,
   outputSchema: UpdateResourceOutputSchema,
-  execute: async ({ context }) => {
+  execute: async ({ context, runtimeContext }) => {
     if (CFN_READONLY) {
       throw new Error('CloudFormation tools are in read-only mode. Resource updates are disabled.');
     }
@@ -339,7 +382,9 @@ const updateResourceTool = createTool({
     const { stackId, properties } = context;
 
     try {
-      const cfnClient = await createCloudFormationClient();
+      const cfnClient = runtimeContext
+        ? await createCloudFormationClientFromContext(runtimeContext)
+        : await createCloudFormationClient();
 
       // First, get the current template
       const getTemplateCommand = new GetTemplateCommand({
@@ -434,7 +479,7 @@ const deleteResourceTool = createTool({
   description: 'Delete an AWS resource by deleting its CloudFormation stack. This will permanently remove the resource and cannot be undone.',
   inputSchema: DeleteResourceInputSchema,
   outputSchema: DeleteResourceOutputSchema,
-  execute: async ({ context }) => {
+  execute: async ({ context, runtimeContext }) => {
     if (CFN_READONLY) {
       throw new Error('CloudFormation tools are in read-only mode. Resource deletion is disabled.');
     }
@@ -442,7 +487,9 @@ const deleteResourceTool = createTool({
     const { stackId, retainResources } = context;
 
     try {
-      const cfnClient = await createCloudFormationClient();
+      const cfnClient = runtimeContext
+        ? await createCloudFormationClientFromContext(runtimeContext)
+        : await createCloudFormationClient();
 
       // Get stack details before deletion
       const describeStacksCommand = new DescribeStacksCommand({
@@ -508,11 +555,13 @@ const listResourcesTool = createTool({
   description: 'List all AWS resources by enumerating CloudFormation stacks. Supports filtering by resource type and stack status.',
   inputSchema: ListResourcesInputSchema,
   outputSchema: ListResourcesOutputSchema,
-  execute: async ({ context }) => {
+  execute: async ({ context, runtimeContext }) => {
     const { resourceTypeFilter, stackStatusFilter, maxResults = 100 } = context;
 
     try {
-      const cfnClient = await createCloudFormationClient();
+      const cfnClient = runtimeContext
+        ? await createCloudFormationClientFromContext(runtimeContext)
+        : await createCloudFormationClient();
 
       // List stacks with optional status filter
       const listStacksCommand = new ListStacksCommand({
@@ -620,11 +669,13 @@ const getRequestStatusTool = createTool({
   description: 'Check the status of a CloudFormation stack operation (create/update/delete). Provides detailed status information and recent events.',
   inputSchema: GetRequestStatusInputSchema,
   outputSchema: GetRequestStatusOutputSchema,
-  execute: async ({ context }) => {
+  execute: async ({ context, runtimeContext }) => {
     const { stackId } = context;
 
     try {
-      const cfnClient = await createCloudFormationClient();
+      const cfnClient = runtimeContext
+        ? await createCloudFormationClientFromContext(runtimeContext)
+        : await createCloudFormationClient();
 
       // Get stack status
       const describeStacksCommand = new DescribeStacksCommand({
@@ -700,11 +751,13 @@ const createTemplateTool = createTool({
   description: 'Generate a CloudFormation template from an existing stack. Retrieves the current template and returns it in the specified format.',
   inputSchema: CreateTemplateInputSchema,
   outputSchema: CreateTemplateOutputSchema,
-  execute: async ({ context }) => {
+  execute: async ({ context, runtimeContext }) => {
     const { stackId, templateFormat = 'JSON' } = context;
 
     try {
-      const cfnClient = await createCloudFormationClient();
+      const cfnClient = runtimeContext
+        ? await createCloudFormationClientFromContext(runtimeContext)
+        : await createCloudFormationClient();
 
       // Get the template
       const getTemplateCommand = new GetTemplateCommand({
@@ -782,11 +835,13 @@ const getResourceSchemaInformationTool = createTool({
   description: 'Retrieve schema information for a CloudFormation resource type. Provides detailed property definitions, types, and validation rules.',
   inputSchema: GetResourceSchemaInputSchema,
   outputSchema: GetResourceSchemaOutputSchema,
-  execute: async ({ context }) => {
+  execute: async ({ context, runtimeContext }) => {
     const { resourceType, schemaVersion } = context;
 
     try {
-      const cfnClient = await createCloudFormationClient();
+      const cfnClient = runtimeContext
+        ? await createCloudFormationClientFromContext(runtimeContext)
+        : await createCloudFormationClient();
 
       // Prepare describe type command
       const describeTypeInput: DescribeTypeCommandInput = {

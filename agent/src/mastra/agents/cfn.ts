@@ -4,6 +4,7 @@ import { UpstashStore, UpstashVector } from '@mastra/upstash';
 import { cloudFormationTools } from '../tools/cfn-tools';
 import { cfnOperationsWorkflow } from '../workflows/cfn-operations';
 import { openrouter } from '../config/model';
+import { getAWSSecurityConfigFromContext } from '../utils/aws-runtime-context';
 
 // Initialize memory with Upstash storage and vector search
 const memory = new Memory({
@@ -27,8 +28,17 @@ export const cfnAgent = new Agent({
       cfnOperationsWorkflow: cfnOperationsWorkflow,
     };
   },
-  instructions: `
-    Specialized AWS CloudFormation agent for infrastructure-as-code operations and resource management using native Mastra tools.
+  tools({ runtimeContext: _runtimeContext }) {
+    // Tools are now runtime context-aware and will automatically use credentials from context
+    return cloudFormationTools;
+  },
+  instructions: ({ runtimeContext }) => {
+    // Dynamic instructions based on runtime context
+    const securityConfig = runtimeContext ? getAWSSecurityConfigFromContext(runtimeContext) : null;
+    const tenantInfo = securityConfig ? `for tenant "${securityConfig.tenantId}" in ${securityConfig.environment} environment` : '';
+
+    return `
+    Specialized AWS CloudFormation agent for infrastructure-as-code operations and resource management using native Mastra tools ${tenantInfo}.
 
     Core Capabilities:
     • Create, read, update, and delete AWS resources via CloudFormation stacks
@@ -77,8 +87,8 @@ export const cfnAgent = new Agent({
 
     Use native CloudFormation tools exclusively for all infrastructure operations.
     Prioritize security, cost optimization, and operational excellence.
-  `,
+  `;
+  },
   model: openrouter('mistralai/magistral-medium-2506:thinking'),
-  tools: cloudFormationTools,
   memory,
 });
