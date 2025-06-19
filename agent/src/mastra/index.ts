@@ -4,13 +4,14 @@ import { PinoLogger } from '@mastra/loggers';
 import { cfnAgent } from './agents/cfn';
 import { documentationAgent } from './agents/documentation';
 import { coreAgent } from './agents/core';
-// Workflows are commented out in the Mastra configuration
-// import { documentationAccessWorkflow } from './workflows/documentation-access';
-// import { cfnOperationsWorkflow } from './workflows/cfn-operations';
+// Enhanced workflows with dual-level agent support
+import { documentationAccessWorkflow } from './workflows/documentation-access';
+import { cfnOperationsWorkflow } from './workflows/cfn-operations';
 
 import { UpstashStore } from "@mastra/upstash";
 import { AgentNetwork } from '@mastra/core/network';
 import { anthropic } from '@ai-sdk/anthropic';
+import { openrouter } from '@openrouter/ai-sdk-provider';
 
 const upstashStorage = new UpstashStore({
   url: process.env.UPSTASH_REDIS_REST_URL as string,
@@ -107,17 +108,17 @@ export const awsInfrastructureNetwork = new AgentNetwork({
 
     Remember: Your goal is to provide the most efficient and comprehensive response by leveraging the specialized capabilities of each agent in the network.
   `,
-  model: anthropic('claude-3-5-haiku-latest'),
+  model: openrouter('mistralai/magistral-medium-2506:thinking'),
   agents: [coreAgent, cfnAgent, documentationAgent],
 });
 
 
 export const mastra = new Mastra({
   agents: { coreAgent, cfnAgent, documentationAgent },
-  // workflows: {
-  //   documentationAccessWorkflow,
-  //   cfnOperationsWorkflow
-  // },
+  workflows: {
+    documentationAccessWorkflow,
+    cfnOperationsWorkflow
+  },
   networks: {
     awsInfrastructureNetwork,
   },

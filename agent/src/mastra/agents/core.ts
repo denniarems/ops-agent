@@ -3,6 +3,7 @@ import { Memory } from '@mastra/memory';
 import { UpstashStore, UpstashVector } from '@mastra/upstash';
 import { coreTools } from '../tools/core-tools';
 import { openrouter } from '../config/model';
+import { documentationAccessWorkflow } from '../workflows/documentation-access';
 
 // Initialize memory with Upstash storage and vector search
 const memory = new Memory({
@@ -53,6 +54,9 @@ export const coreAgent = new Agent({
     Use the native Core tools as the starting point for every AWS project and orchestrate other specialized services based on specific needs.
   `,
   model: openrouter('mistralai/magistral-medium-2506:thinking'),
+  workflows: {
+    documentationAccessWorkflow,
+  },
   tools: coreTools,
   memory,
 });
