@@ -251,6 +251,18 @@ const Index = () => {
                   <span className="relative font-medium">{item.name}</span>
                 </a>
               ))}
+
+              {/* Dashboard Link for Authenticated Users */}
+              <SignedIn>
+                <a
+                  href="/dashboard"
+                  className="relative px-4 py-2 text-gray-300 hover:text-white group overflow-hidden rounded-full transition-all duration-300"
+                  style={{ fontFamily: '"Space Grotesk", sans-serif', letterSpacing: '0.01em' }}
+                >
+                  <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-[#3ABCF7]/20 to-[#8B2FF8]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full"></span>
+                  <span className="relative font-medium">Dashboard</span>
+                </a>
+              </SignedIn>
             </nav>
 
             {/* Authentication Section */}
