@@ -2,8 +2,8 @@ import { Agent } from '@mastra/core/agent';
 import { Memory } from '@mastra/memory';
 import { UpstashStore, UpstashVector } from '@mastra/upstash';
 import { cloudFormationTools } from '../tools/cfn-tools';
-import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { cfnOperationsWorkflow } from '../workflows/cfn-operations';
+import { openrouter } from '../config/model';
 
 // Initialize memory with Upstash storage and vector search
 const memory = new Memory({
@@ -19,10 +19,6 @@ const memory = new Memory({
     lastMessages: 20,
   },
 });
-
-const openrouter = createOpenRouter({
-    apiKey: process.env.OPENROUTER_API_KEY,
-})
 
 export const cfnAgent = new Agent({
   name: 'AWS CloudFormation Agent',
@@ -82,7 +78,7 @@ export const cfnAgent = new Agent({
     Use native CloudFormation tools exclusively for all infrastructure operations.
     Prioritize security, cost optimization, and operational excellence.
   `,
-  model: openrouter('mistralai/magistral-medium-2506'),
+  model: openrouter('mistralai/magistral-medium-2506:thinking'),
   tools: cloudFormationTools,
   memory,
 });

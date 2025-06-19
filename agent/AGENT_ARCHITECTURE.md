@@ -29,7 +29,7 @@ The ZapGap agent system is built using the Mastra framework and consists of spec
 
 ### 3. Documentation Agent (`documentationAgent`)
 - **Purpose**: AWS documentation and knowledge retrieval
-- **MCP Server**: `awslabs.aws-documentation-mcp-server`
+- **Implementation**: Native TypeScript tools
 - **Capabilities**:
   - Access real-time AWS documentation and API references
   - Search AWS service documentation and best practices
@@ -56,11 +56,13 @@ The ZapGap agent system is built using the Mastra framework and consists of spec
          list_resources, get_request_status, create_template, get_resource_schema_information
 ```
 
-### Documentation MCP Client (`documentationMcpClient`)
+### Documentation Native Tools (`documentationTools`)
 ```typescript
-// File: agent/src/mastra/mcps/documentation.ts
-- Server: awslabs.aws-documentation-mcp-server
+// File: agent/src/mastra/tools/documentation-tools.ts
+- Implementation: Native TypeScript tools with ofetch HTTP client
 - Purpose: Documentation and knowledge retrieval
+- Features: HTML to markdown conversion, AWS search API integration, content recommendations
+- Tools: read_documentation, search_documentation, recommend
 ```
 
 ## Agent Specialization Benefits

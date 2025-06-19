@@ -2,7 +2,8 @@ import { anthropic } from '@ai-sdk/anthropic';
 import { Agent } from '@mastra/core/agent';
 import { Memory } from '@mastra/memory';
 import { UpstashStore, UpstashVector } from '@mastra/upstash';
-import { documentationMcpClient } from '../mcps/documentation';
+import { documentationTools } from '../tools/documentation-tools';
+import { openrouter } from '../config/model';
 
 // Initialize memory with Upstash storage and vector search
 const memory = new Memory({
@@ -81,10 +82,10 @@ export const documentationAgent = new Agent({
     4. Include security and cost considerations
     5. Offer additional resources and related documentation
 
-    Use AWS Documentation MCP tools to access the most current and accurate AWS information.
+    Use the native AWS Documentation tools to access the most current and accurate AWS information.
     Always prioritize official AWS documentation and best practices in responses.
   `,
-  model: anthropic('claude-4-sonnet-20250514'),
-  tools: await documentationMcpClient.getTools(),
+  model: openrouter('mistralai/magistral-medium-2506:thinking'),
+  tools: documentationTools,
   memory,
 });
