@@ -2,7 +2,7 @@ import { anthropic } from '@ai-sdk/anthropic';
 import { Agent } from '@mastra/core/agent';
 import { createStep, createWorkflow } from '@mastra/core/workflows';
 import { z } from 'zod';
-import { cfnMcpClient } from '../mcps/cfn';
+import { cfnMcpClient } from '../mcps/cfn-uvx';
 
 // Error handling utility for MCP server operations
 const handleMcpError = (error: any, serverName: string, operation: string) => {
@@ -24,7 +24,6 @@ const validateMcpServers = async () => {
       'aws-core-mcp-server': tools.filter((tool: any) => tool.name?.includes('aws') && !tool.name?.includes('cfn')),
       'aws-documentation': tools.filter((tool: any) => tool.name?.includes('doc') || tool.name?.includes('help')),
     };
-
     return {
       available: true,
       serverTools,
@@ -42,42 +41,23 @@ const validateMcpServers = async () => {
 
 const llm = anthropic('claude-4-sonnet-20250514');
 
-// Enhanced CloudFormation workflow agent with comprehensive AWS capabilities
+// Enhanced CloudFormation workflow agent
 const cfnWorkflowAgent = new Agent({
   name: 'Enhanced AWS Infrastructure Agent',
   model: llm,
   instructions: `
-    You are an expert AWS infrastructure architect with comprehensive access to AWS services through multiple specialized tools.
-    Your role is to help plan, validate, and execute infrastructure deployments using AWS CloudFormation and other AWS services.
+    AWS infrastructure architect with access to specialized tools for planning, validating, and executing deployments.
 
-    ## Available Tool Categories:
-    1. **CloudFormation Tools** (cfn-mcp-server): Stack management, template operations, resource lifecycle
-    2. **AWS Core Services** (aws-core-mcp-server): EC2, S3, IAM, VPC, Lambda, and other core AWS services
-    3. **AWS Documentation** (aws-documentation): Service documentation, best practices, and guidance
+    Tool Categories:
+    • CloudFormation (cfn-mcp-server): Stack/template operations, resource lifecycle
+    • AWS Core (aws-core-mcp-server): EC2, S3, IAM, VPC, Lambda services
+    • AWS Documentation (aws-documentation): Service docs, best practices
 
-    ## Enhanced Capabilities:
-    - Plan and deploy infrastructure using CloudFormation templates
-    - Manage individual AWS resources directly when needed
-    - Access real-time AWS documentation and best practices
-    - Validate configurations against AWS service limits and constraints
-    - Implement comprehensive security and compliance measures
-    - Optimize costs and performance across all AWS services
+    Capabilities: Deploy via CloudFormation, manage individual resources, access real-time docs, validate configs, implement security/compliance, optimize costs.
 
-    ## Best Practices:
-    - Always consider security best practices and least privilege principles
-    - Implement proper resource tagging for cost management and organization
-    - Consider dependencies between resources and plan deployment order accordingly
-    - Leverage AWS documentation tools for the latest service information
-    - Provide clear explanations of what resources will be created and their purpose
-    - Include rollback strategies for complex deployments
-    - Use appropriate tools for each task (CloudFormation for infrastructure, core services for individual resources)
+    Best Practices: Security/least privilege, proper tagging, dependency planning, rollback strategies, clear explanations.
 
-    ## Multi-step Deployment Strategy:
-    - Break down complex infrastructure into logical components
-    - Ensure proper dependency management between resources
-    - Validate each step before proceeding to the next
-    - Provide status updates and progress tracking
-    - Use documentation tools to verify current AWS service capabilities and limits
+    Strategy: Break down complex infrastructure, manage dependencies, validate steps, provide status updates.
   `,
   tools: await cfnMcpClient.getTools(),
 });
@@ -126,10 +106,10 @@ const deploymentPlanSchema = z.object({
 //   nextSteps: z.array(z.string()),
 // });
 
-// Step 0: Pre-flight Check - Validate MCP Server Availability
+// Pre-flight Check
 const preflightCheck = createStep({
   id: 'preflight-check',
-  description: 'Validate MCP server availability and tool access',
+  description: 'Validate MCP server availability',
   inputSchema: infrastructureRequestSchema,
   outputSchema: z.object({
     mcpStatus: z.object({
@@ -165,10 +145,10 @@ const preflightCheck = createStep({
   },
 });
 
-// Step 1: Analyze Infrastructure Requirements
+// Analyze Requirements
 const analyzeRequirements = createStep({
   id: 'analyze-requirements',
-  description: 'Analyze infrastructure requirements and create deployment plan',
+  description: 'Analyze requirements and create deployment plan',
   inputSchema: z.object({
     mcpStatus: z.object({
       available: z.boolean(),
@@ -191,25 +171,13 @@ const analyzeRequirements = createStep({
     }
 
     const prompt = `
-      Analyze the following infrastructure request and create a detailed deployment plan:
-
-      Description: ${request.description}
+      Create deployment plan for: ${request.description}
       Requirements: ${request.requirements.join(', ')}
-      Environment: ${request.environment}
-      Region: ${request.region || 'us-east-1'}
-      Budget: ${request.budget ? `$${request.budget}` : 'No budget specified'}
+      Environment: ${request.environment}, Region: ${request.region || 'us-east-1'}
+      Budget: ${request.budget ? `$${request.budget}` : 'No budget'}
+      Tools: ${mcpStatus.totalTools} available
 
-      Available MCP Tools: ${mcpStatus.totalTools} tools across ${Object.keys(mcpStatus.serverTools).length} servers
-
-      Create a deployment plan that includes:
-      1. List of AWS resources needed with their types and properties
-      2. Deployment order considering dependencies
-      3. Security considerations and best practices
-      4. Estimated costs (if possible)
-      5. Rollback strategy
-      6. Specify which MCP server should handle each resource (cfn-mcp-server, aws-core-mcp-server)
-
-      Format the response as a structured plan with clear resource definitions.
+      Include: Resource list, deployment order, security considerations, costs, rollback strategy, MCP server assignments.
     `;
 
     const response = await cfnWorkflowAgent.stream([
@@ -267,10 +235,10 @@ const analyzeRequirements = createStep({
   },
 });
 
-// Step 2: Validate Infrastructure Plan with AWS Documentation
+// Validate with Documentation
 const validateWithDocumentation = createStep({
   id: 'validate-with-documentation',
-  description: 'Validate infrastructure plan against AWS documentation and best practices',
+  description: 'Validate plan against AWS docs and best practices',
   inputSchema: deploymentPlanSchema,
   outputSchema: z.object({
     validationResults: z.array(z.object({
@@ -292,20 +260,12 @@ const validateWithDocumentation = createStep({
     }
 
     const prompt = `
-      Validate the following infrastructure deployment plan using AWS documentation tools:
-
+      Validate deployment plan using AWS docs:
       Resources: ${JSON.stringify(inputData.resources, null, 2)}
       Environment: ${inputData.environment}
-      Security Considerations: ${inputData.securityConsiderations.join(', ')}
+      Security: ${inputData.securityConsiderations.join(', ')}
 
-      Please:
-      1. Use AWS documentation tools to verify each resource configuration
-      2. Check for any service limits or constraints
-      3. Validate security best practices
-      4. Provide recommendations for optimization
-      5. Update the plan if necessary based on documentation insights
-
-      Focus on using the aws-documentation MCP server to get the latest information.
+      Verify configs, check limits, validate security, provide optimization recommendations.
     `;
 
     const response = await cfnWorkflowAgent.stream([
@@ -342,10 +302,10 @@ const validateWithDocumentation = createStep({
   },
 });
 
-// Step 3: Pre-deployment Resource Validation
+// Pre-deployment Validation
 const validateResources = createStep({
   id: 'validate-resources',
-  description: 'Validate AWS resources and check prerequisites using core AWS services',
+  description: 'Validate resources and check prerequisites',
   inputSchema: z.object({
     validationResults: z.array(z.object({
       resource: z.string(),
@@ -379,19 +339,11 @@ const validateResources = createStep({
     }
 
     const prompt = `
-      Perform pre-deployment validation using AWS core services tools:
-
+      Pre-deployment validation:
       Plan: ${JSON.stringify(inputData.updatedPlan, null, 2)}
-      Previous Validation: ${JSON.stringify(inputData.validationResults, null, 2)}
+      Previous: ${JSON.stringify(inputData.validationResults, null, 2)}
 
-      Please:
-      1. Use aws-core-mcp-server tools to check account limits and quotas
-      2. Verify existing resources that might conflict
-      3. Check IAM permissions and prerequisites
-      4. Validate regional availability of services
-      5. Confirm the deployment is ready to proceed
-
-      Use the appropriate MCP server tools for each validation task.
+      Check account limits, existing resources, IAM permissions, regional availability.
     `;
 
     const response = await cfnWorkflowAgent.stream([
@@ -422,10 +374,10 @@ const validateResources = createStep({
   },
 });
 
-// Step 4: Execute Deployment
+// Execute Deployment
 const executeDeployment = createStep({
   id: 'execute-deployment',
-  description: 'Execute the infrastructure deployment using appropriate MCP servers',
+  description: 'Execute infrastructure deployment',
   inputSchema: z.object({
     resourceValidation: z.object({
       accountLimits: z.record(z.any()),
@@ -460,19 +412,11 @@ const executeDeployment = createStep({
     }
 
     const prompt = `
-      Execute the infrastructure deployment using the appropriate MCP server tools:
+      Execute deployment:
+      Plan: ${JSON.stringify(inputData.finalPlan, null, 2)}
+      Status: Ready
 
-      Final Plan: ${JSON.stringify(inputData.finalPlan, null, 2)}
-      Validation Status: Ready for deployment
-
-      Please:
-      1. Use cfn-mcp-server for CloudFormation stack operations
-      2. Use aws-core-mcp-server for direct resource management when needed
-      3. Deploy resources in the specified order considering dependencies
-      4. Monitor deployment progress and handle any errors
-      5. Provide detailed status updates for each resource
-
-      Execute the deployment step by step, using the most appropriate MCP server for each resource type.
+      Use cfn-mcp-server for stacks, aws-core-mcp-server for direct resources. Deploy in order, monitor progress.
     `;
 
     const response = await cfnWorkflowAgent.stream([
@@ -544,36 +488,6 @@ cfnWorkflow.commit();
 /**
  * Enhanced CloudFormation Workflow with Multi-MCP Server Integration
  *
- * This workflow leverages three specialized MCP servers to provide comprehensive AWS infrastructure management:
- *
- * 1. **cfn-mcp-server**: CloudFormation stack operations, template management, and infrastructure lifecycle
- * 2. **aws-core-mcp-server**: Direct AWS service operations for EC2, S3, IAM, VPC, Lambda, and other core services
- * 3. **aws-documentation**: Real-time access to AWS documentation, best practices, and service information
- *
- * Workflow Steps:
- * 1. **Preflight Check**: Validates MCP server availability and tool access
- * 2. **Analyze Requirements**: Creates deployment plan using enhanced AWS capabilities
- * 3. **Validate with Documentation**: Uses AWS documentation tools for validation and best practices
- * 4. **Validate Resources**: Pre-deployment validation using core AWS services
- * 5. **Execute Deployment**: Deploys infrastructure using appropriate MCP servers
- *
- * Features:
- * - Comprehensive error handling and MCP server integration
- * - Intelligent tool selection based on resource type and deployment method
- * - Real-time documentation access for latest AWS service information
- * - Enhanced security and compliance validation
- * - Multi-server coordination for complex deployments
- *
- * Usage:
- * ```typescript
- * import { cfnWorkflow } from './workflows/cfn';
- *
- * const result = await cfnWorkflow.execute({
- *   description: "Deploy a secure S3 bucket with CloudFront distribution",
- *   requirements: ["S3 bucket", "CloudFront distribution", "IAM policies"],
- *   environment: "production",
- *   region: "us-east-1",
- *   budget: 1000
- * });
- * ```
+ * Leverages cfn-mcp-server, aws-core-mcp-server, and aws-documentation for comprehensive AWS infrastructure management.
+ * Steps: Preflight check → Analyze requirements → Validate with docs → Validate resources → Execute deployment
  */

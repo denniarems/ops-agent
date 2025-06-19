@@ -1,19 +1,19 @@
 import { z } from 'zod';
 
-// Security configuration schema
+// Security config schema
 export const securityConfigSchema = z.object({
-  tenantId: z.string().min(1).describe('Unique tenant identifier'),
-  environment: z.enum(['development', 'staging', 'production']).describe('Deployment environment'),
+  tenantId: z.string().min(1).describe('Tenant ID'),
+  environment: z.enum(['development', 'staging', 'production']).describe('Environment'),
   region: z.string().default('us-east-1').describe('AWS region'),
-  resourceTagPrefix: z.string().default('zapgap').describe('Prefix for resource tags'),
-  maxResourcesPerTenant: z.number().default(100).describe('Maximum resources per tenant'),
-  allowedResourceTypes: z.array(z.string()).optional().describe('Allowed AWS resource types'),
-  requiredTags: z.array(z.string()).default(['tenant', 'environment', 'created-by']).describe('Required resource tags'),
+  resourceTagPrefix: z.string().default('zapgap').describe('Tag prefix'),
+  maxResourcesPerTenant: z.number().default(100).describe('Max resources'),
+  allowedResourceTypes: z.array(z.string()).optional().describe('Allowed types'),
+  requiredTags: z.array(z.string()).default(['tenant', 'environment', 'created-by']).describe('Required tags'),
 });
 
 export type SecurityConfig = z.infer<typeof securityConfigSchema>;
 
-// Default security configuration
+// Default config
 export const getSecurityConfig = (): SecurityConfig => {
   return {
     tenantId: process.env.TENANT_ID || 'default',
@@ -26,7 +26,7 @@ export const getSecurityConfig = (): SecurityConfig => {
   };
 };
 
-// Generate standard resource tags for multi-tenancy
+// Generate resource tags
 export const generateResourceTags = (config: SecurityConfig, additionalTags: Record<string, string> = {}): Record<string, string> => {
   const timestamp = new Date().toISOString();
   
@@ -40,64 +40,47 @@ export const generateResourceTags = (config: SecurityConfig, additionalTags: Rec
   };
 };
 
-// Validate resource type against allowed types
+// Validate resource type
 export const validateResourceType = (resourceType: string, config: SecurityConfig): boolean => {
   if (!config.allowedResourceTypes || config.allowedResourceTypes.length === 0) {
     return true; // No restrictions
   }
-  
   return config.allowedResourceTypes.includes(resourceType);
 };
 
-// Generate unique resource name with tenant prefix
+// Generate resource name with tenant prefix
 export const generateResourceName = (baseName: string, config: SecurityConfig): string => {
   const sanitizedBaseName = baseName.replace(/[^a-zA-Z0-9-]/g, '-').toLowerCase();
   return `${config.resourceTagPrefix}-${config.tenantId}-${sanitizedBaseName}`;
 };
 
-// Validate resource limits for tenant
+// Validate resource limits
 export const validateResourceLimits = async (resourceType: string, config: SecurityConfig): Promise<{ allowed: boolean; reason?: string }> => {
-  // This would typically check against a database or external service
-  // For now, implementing basic validation
-  
   if (!validateResourceType(resourceType, config)) {
     return {
       allowed: false,
       reason: `Resource type ${resourceType} is not allowed for this tenant`,
     };
   }
-  
-  // Additional limit checks could be implemented here
-  // e.g., checking current resource count against maxResourcesPerTenant
-  
   return { allowed: true };
 };
 
-// Security validation for resource operations
+// Validate resource operation
 export const validateResourceOperation = (
   operation: 'create' | 'read' | 'update' | 'delete',
   resourceType: string,
   config: SecurityConfig
 ): { allowed: boolean; reason?: string } => {
-  // Check if resource type is allowed
   if (!validateResourceType(resourceType, config)) {
     return {
       allowed: false,
       reason: `Resource type ${resourceType} is not allowed for this tenant`,
     };
   }
-  
-  // Environment-specific restrictions
-  if (config.environment === 'production' && operation === 'delete') {
-    // In production, require additional confirmation for deletions
-    // This would be handled by the calling code
-  }
-  
-  // Additional security checks can be added here
   return { allowed: true };
 };
 
-// IAM policy recommendations for CloudFormation operations
+// IAM policy recommendations
 export const getRecommendedIAMPolicy = (config: SecurityConfig) => {
   return {
     Version: '2012-10-17',
@@ -142,7 +125,7 @@ export const getRecommendedIAMPolicy = (config: SecurityConfig) => {
   };
 };
 
-// Audit logging configuration
+// Audit logging
 export interface AuditLogEntry {
   timestamp: string;
   tenantId: string;
@@ -172,7 +155,7 @@ export const createAuditLogEntry = (
   };
 };
 
-// Cost management helpers
+// Cost allocation tags
 export const getCostAllocationTags = (config: SecurityConfig): Record<string, string> => {
   return {
     [`${config.resourceTagPrefix}:cost-center`]: config.tenantId,

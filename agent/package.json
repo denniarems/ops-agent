@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.12",
+    "@aws-sdk/client-sts": "^3.830.0",
     "@mastra/core": "^0.10.5",
     "@mastra/libsql": "^0.10.2",
     "@mastra/loggers": "^0.10.2",
