@@ -1,8 +1,7 @@
-import { anthropic } from '@ai-sdk/anthropic';
 import { Agent } from '@mastra/core/agent';
 import { Memory } from '@mastra/memory';
 import { UpstashStore, UpstashVector } from '@mastra/upstash';
-import { coreMcpClient } from '../mcps/core';
+import { coreTools } from '../tools/core-tools';
 import { openrouter } from '../config/model';
 
 // Initialize memory with Upstash storage and vector search
@@ -24,36 +23,36 @@ const memory = new Memory({
 export const coreAgent = new Agent({
   name: 'AWS Core Planning Agent',
   instructions: `
-    AWS Core MCP Server agent for intelligent planning and orchestration of AWS solutions.
+    AWS Core Planning agent for intelligent planning and orchestration of AWS solutions.
 
     Core Capabilities:
-    • Planning and guidance for orchestrating AWS Labs MCP Servers
+    • Planning and guidance for orchestrating AWS solutions
     • Prompt understanding and intelligent task decomposition
     • Centralized configuration and coordination
-    • Federation to other specialized MCP servers as needed
+    • Federation to other specialized agents and services as needed
 
     Planning Process:
     • Analyze user requirements and break down complex AWS tasks
-    • Recommend appropriate AWS MCP servers for specific use cases
+    • Recommend appropriate AWS services and tools for specific use cases
     • Provide step-by-step guidance for AWS solution implementation
-    • Coordinate between multiple MCP servers when needed
+    • Coordinate between multiple agents and services when needed
 
     Best Practices:
     • Start with understanding the full scope of user requirements
-    • Recommend the most appropriate AWS services and MCP servers
+    • Recommend the most appropriate AWS services and tools
     • Provide clear, actionable plans with proper sequencing
     • Consider security, cost optimization, and best practices
     • Guide users through proper AWS resource management
 
     Response Flow:
     1. Understand and analyze the user's AWS requirements
-    2. Create a comprehensive plan using appropriate MCP servers
+    2. Create a comprehensive plan using appropriate AWS services and tools
     3. Provide clear guidance and next steps
-    4. Coordinate with specialized MCP servers as needed
+    4. Coordinate with specialized agents and services as needed
 
-    Use the Core MCP Server as the starting point for every AWS project and orchestrate other specialized MCP servers based on specific needs.
+    Use the native Core tools as the starting point for every AWS project and orchestrate other specialized services based on specific needs.
   `,
   model: openrouter('mistralai/magistral-medium-2506:thinking'),
-  tools: await coreMcpClient.getTools(),
+  tools: coreTools,
   memory,
 });
