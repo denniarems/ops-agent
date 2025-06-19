@@ -11,6 +11,8 @@ import { cfnOperationsWorkflow } from './workflows/cfn-operations';
 import { UpstashStore } from "@mastra/upstash";
 import { AgentNetwork } from '@mastra/core/network';
 import { openrouter } from '@openrouter/ai-sdk-provider';
+import { combinedContextMiddleware } from './middleware/user-context-middleware';
+import { registerApiRoute } from '@mastra/core/server';
 
 const upstashStorage = new UpstashStore({
   url: process.env.UPSTASH_REDIS_REST_URL as string,
@@ -126,4 +128,51 @@ export const mastra = new Mastra({
     name: 'Mastra',
     level: 'info',
   }),
+  server: {
+    port: 4111,
+    middleware: [
+      combinedContextMiddleware,
+    ],
+    apiRoutes: [
+      registerApiRoute('/chat', {
+        method: 'POST',
+        handler: async (c) => {
+          try {
+            const { message, agentName = 'coreAgent' } = await c.req.json();
+
+            // Get the agent
+            const agent = mastra.getAgent(agentName);
+            if (!agent) {
+              return c.json({ error: `Agent ${agentName} not found` }, 404);
+            }
+
+            // Generate response using the agent with runtime context
+            const response = await agent.generate(message);
+
+            return c.json({
+              response: response.text,
+              agentUsed: agentName,
+              timestamp: new Date().toISOString()
+            });
+          } catch (error) {
+            console.error('Chat API error:', error);
+            return c.json({
+              error: 'Failed to process chat request',
+              details: error instanceof Error ? error.message : 'Unknown error'
+            }, 500);
+          }
+        },
+      }),
+      registerApiRoute('/agents', {
+        method: 'GET',
+        handler: async (c) => {
+          const agents = mastra.getAgents();
+          return c.json({
+            agents: Object.keys(agents),
+            count: Object.keys(agents).length
+          });
+        },
+      }),
+    ],
+  },
 });

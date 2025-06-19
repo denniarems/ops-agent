@@ -5,6 +5,7 @@ import { cloudFormationTools } from '../tools/cfn-tools';
 import { cfnOperationsWorkflow } from '../workflows/cfn-operations';
 import { openrouter } from '../config/model';
 import { getAWSSecurityConfigFromContext } from '../utils/aws-runtime-context';
+import { createContextSummary, getUserTierFromContext, getUserLanguageFromContext } from '../utils/user-context-utils';
 
 // Initialize memory with Upstash storage and vector search
 const memory = new Memory({
@@ -28,7 +29,13 @@ export const cfnAgent = new Agent({
       cfnOperationsWorkflow: cfnOperationsWorkflow,
     };
   },
-  tools({ runtimeContext: _runtimeContext }) {
+  tools({ runtimeContext }) {
+    // Log user context for debugging
+    if (runtimeContext) {
+      const contextSummary = createContextSummary(runtimeContext);
+      console.log(`CFN Agent tools initialized for: ${contextSummary}`);
+    }
+
     // Tools are now runtime context-aware and will automatically use credentials from context
     return cloudFormationTools;
   },
@@ -37,8 +44,26 @@ export const cfnAgent = new Agent({
     const securityConfig = runtimeContext ? getAWSSecurityConfigFromContext(runtimeContext) : null;
     const tenantInfo = securityConfig ? `for tenant "${securityConfig.tenantId}" in ${securityConfig.environment} environment` : '';
 
+    // Extract user context for personalized responses
+    const userTier = runtimeContext ? getUserTierFromContext(runtimeContext) : 'free';
+    const userLanguage = runtimeContext ? getUserLanguageFromContext(runtimeContext) : 'en';
+
+    const tierGuidance = userTier === 'enterprise'
+      ? 'Provide enterprise-grade CloudFormation solutions with advanced features, comprehensive monitoring, and detailed security configurations.'
+      : userTier === 'pro'
+      ? 'Provide professional CloudFormation solutions with good security practices and monitoring capabilities.'
+      : 'Provide basic CloudFormation solutions with essential security and cost-conscious configurations. Focus on simple, well-documented templates.';
+
+    const languageNote = userLanguage !== 'en'
+      ? `\n\nIMPORTANT: Respond in ${userLanguage} language when possible, but CloudFormation syntax, AWS service names, and technical parameters must remain in English.`
+      : '';
+
     return `
     Specialized AWS CloudFormation agent for infrastructure-as-code operations and resource management using native Mastra tools ${tenantInfo}.
+
+    User Context: ${userTier} tier user${languageNote}
+
+    ${tierGuidance}
 
     Core Capabilities:
     • Create, read, update, and delete AWS resources via CloudFormation stacks
@@ -82,7 +107,7 @@ export const cfnAgent = new Agent({
     • Consider resource dependencies and deployment order
     • Implement proper rollback strategies for failed operations
     • Include monitoring and backup recommendations
-    • Optimize for cost and performance
+    • Optimize for cost and performance based on user tier
     • Follow AWS Well-Architected Framework principles
 
     Use native CloudFormation tools exclusively for all infrastructure operations.

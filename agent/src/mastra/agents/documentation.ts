@@ -4,6 +4,7 @@ import { UpstashStore, UpstashVector } from '@mastra/upstash';
 import { documentationTools } from '../tools/documentation-tools';
 import { openrouter } from '../config/model';
 import { getAWSConfigFromContext } from '../utils/aws-runtime-context';
+import { createContextSummary, getUserTierFromContext, getUserLanguageFromContext } from '../utils/user-context-utils';
 
 // Initialize memory with Upstash storage and vector search
 const memory = new Memory({
@@ -22,7 +23,13 @@ const memory = new Memory({
 
 export const documentationAgent = new Agent({
   name: 'AWS Documentation Agent',
-  tools({ runtimeContext: _runtimeContext }) {
+  tools({ runtimeContext }) {
+    // Log user context for debugging
+    if (runtimeContext) {
+      const contextSummary = createContextSummary(runtimeContext);
+      console.log(`Documentation Agent tools initialized for: ${contextSummary}`);
+    }
+
     // Documentation tools are runtime context-aware for AWS-specific configurations
     return documentationTools;
   },
@@ -31,8 +38,26 @@ export const documentationAgent = new Agent({
     const config = runtimeContext ? getAWSConfigFromContext(runtimeContext) : null;
     const regionInfo = config ? ` (focused on ${config.region} region)` : '';
 
+    // Extract user context for personalized responses
+    const userTier = runtimeContext ? getUserTierFromContext(runtimeContext) : 'free';
+    const userLanguage = runtimeContext ? getUserLanguageFromContext(runtimeContext) : 'en';
+
+    const tierGuidance = userTier === 'enterprise'
+      ? 'Provide comprehensive, enterprise-level documentation with advanced configurations, detailed security guidance, and complex architectural patterns.'
+      : userTier === 'pro'
+      ? 'Provide professional-level documentation with practical examples, security best practices, and intermediate architectural guidance.'
+      : 'Provide clear, beginner-friendly documentation with simple examples, basic security practices, and cost-effective solutions.';
+
+    const languageNote = userLanguage !== 'en'
+      ? `\n\nIMPORTANT: Respond in ${userLanguage} language when possible, but AWS service names, API parameters, and code examples should remain in English.`
+      : '';
+
     return `
     Specialized AWS documentation and knowledge retrieval agent for providing comprehensive AWS guidance${regionInfo}.
+
+    User Context: ${userTier} tier user${languageNote}
+
+    ${tierGuidance}
 
     Core Capabilities:
     • Access real-time AWS documentation and API references
@@ -62,11 +87,11 @@ export const documentationAgent = new Agent({
 
     Response Patterns:
     • Provide accurate, up-to-date information from official AWS documentation
-    • Include relevant code examples and configuration snippets
+    • Include relevant code examples and configuration snippets appropriate for user tier
     • Reference specific AWS documentation sections and links
     • Offer multiple implementation approaches when applicable
     • Highlight security considerations and best practices
-    • Suggest cost optimization opportunities
+    • Suggest cost optimization opportunities based on user tier
 
     Search Capabilities:
     • Semantic search across AWS documentation
@@ -83,11 +108,12 @@ export const documentationAgent = new Agent({
     • Offer practical examples and implementation guidance
     • Consider cost implications of recommended solutions
     • Highlight regional availability and limitations
+    • Tailor complexity and detail level to user's subscription tier
 
     Response Flow:
     1. Understand the specific AWS service or concept being queried
     2. Search relevant AWS documentation and best practices
-    3. Provide comprehensive, accurate information with examples
+    3. Provide comprehensive, accurate information with examples appropriate for user tier
     4. Include security and cost considerations
     5. Offer additional resources and related documentation
 

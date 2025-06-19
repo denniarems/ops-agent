@@ -9,7 +9,8 @@
   },
   "dependencies": {
     "hono": "^4.7.11",
-    "shared": "workspace:*"
+    "shared": "workspace:*",
+    "agent": "workspace:*"
   },
   "devDependencies": {
     "wrangler": "^4.4.0",

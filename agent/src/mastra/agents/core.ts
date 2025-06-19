@@ -5,6 +5,7 @@ import { coreTools } from '../tools/core-tools';
 import { openrouter } from '../config/model';
 import { documentationAccessWorkflow } from '../workflows/documentation-access';
 import { getAWSSecurityConfigFromContext } from '../utils/aws-runtime-context';
+import { createContextSummary, getUserTierFromContext, getUserLanguageFromContext } from '../utils/user-context-utils';
 
 // Initialize memory with Upstash storage and vector search
 const memory = new Memory({
@@ -24,8 +25,14 @@ const memory = new Memory({
 
 export const coreAgent = new Agent({
   name: 'AWS Core Planning Agent',
-  tools({ runtimeContext: _runtimeContext }) {
-    // Core tools are runtime context-aware for AWS coordination
+  tools({ runtimeContext }) {
+    // Log user context for debugging
+    if (runtimeContext) {
+      const contextSummary = createContextSummary(runtimeContext);
+      console.log(`Core Agent tools initialized for: ${contextSummary}`);
+    }
+
+    // Core tools are runtime context-aware for AWS coordination and user context
     return coreTools;
   },
   instructions: ({ runtimeContext }) => {
@@ -33,8 +40,26 @@ export const coreAgent = new Agent({
     const securityConfig = runtimeContext ? getAWSSecurityConfigFromContext(runtimeContext) : null;
     const tenantInfo = securityConfig ? ` for tenant "${securityConfig.tenantId}" in ${securityConfig.environment} environment` : '';
 
+    // Extract user context for personalized responses
+    const userTier = runtimeContext ? getUserTierFromContext(runtimeContext) : 'free';
+    const userLanguage = runtimeContext ? getUserLanguageFromContext(runtimeContext) : 'en';
+
+    const tierGuidance = userTier === 'enterprise'
+      ? 'Provide comprehensive enterprise-grade solutions with advanced features and detailed implementation guidance.'
+      : userTier === 'pro'
+      ? 'Provide professional-level solutions with good detail and practical implementation steps.'
+      : 'Provide clear, beginner-friendly solutions with step-by-step guidance and cost-conscious recommendations.';
+
+    const languageNote = userLanguage !== 'en'
+      ? `\n\nIMPORTANT: Respond in ${userLanguage} language when possible, but technical terms and AWS service names should remain in English.`
+      : '';
+
     return `
     AWS Core Planning agent for intelligent planning and orchestration of AWS solutions${tenantInfo}.
+
+    User Context: ${userTier} tier user${languageNote}
+
+    ${tierGuidance}
 
     Core Capabilities:
     • Planning and guidance for orchestrating AWS solutions
@@ -54,11 +79,12 @@ export const coreAgent = new Agent({
     • Provide clear, actionable plans with proper sequencing
     • Consider security, cost optimization, and best practices
     • Guide users through proper AWS resource management
+    • Tailor complexity and detail level to user's subscription tier
 
     Response Flow:
     1. Understand and analyze the user's AWS requirements
     2. Create a comprehensive plan using appropriate AWS services and tools
-    3. Provide clear guidance and next steps
+    3. Provide clear guidance and next steps appropriate for user's tier
     4. Coordinate with specialized agents and services as needed
 
     Use the native Core tools as the starting point for every AWS project and orchestrate other specialized services based on specific needs.
