@@ -5,12 +5,19 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
-import { 
-  Zap, Shield, Cog, Cloud, Users, Target, Gauge, Lock, 
-  Github, Linkedin, Twitter, MessageCircle, Sparkles, Brain, 
+import {
+  Zap, Shield, Cog, Cloud, Users, Target, Gauge, Lock,
+  Github, Linkedin, Twitter, MessageCircle, Sparkles, Brain,
   Cpu, Network, ChevronRight, CheckCircle, AlertCircle,
   MessageSquare, Workflow, UserPlus, Link as LinkIcon, LineChart, ChevronDown
 } from "lucide-react";
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignUpButton,
+  UserButton,
+} from "@clerk/clerk-react";
 import PlatformSection from "@/components/PlatformSection";
 import UseCasesTable from "@/components/UseCasesTable";
 import PersonaFeatures from "@/components/PersonaFeatures";
@@ -234,9 +241,9 @@ const Index = () => {
                 { name: 'Features', href: '#features' },
                 { name: 'Use Cases', href: '#use-cases' }
               ].map((item) => (
-                <a 
+                <a
                   key={item.name}
-                  href={item.href} 
+                  href={item.href}
                   className="relative px-4 py-2 text-gray-300 hover:text-white group overflow-hidden rounded-full transition-all duration-300"
                   style={{ fontFamily: '"Space Grotesk", sans-serif', letterSpacing: '0.01em' }}
                 >
@@ -245,6 +252,40 @@ const Index = () => {
                 </a>
               ))}
             </nav>
+
+            {/* Authentication Section */}
+            <div className="flex items-center space-x-4">
+              <SignedOut>
+                <div className="flex items-center space-x-2">
+                  <SignInButton mode="modal">
+                    <Button
+                      variant="ghost"
+                      className="text-gray-300 hover:text-white hover:bg-white/10 rounded-full px-6 py-2 transition-all duration-300"
+                      style={{ fontFamily: '"Space Grotesk", sans-serif' }}
+                    >
+                      Sign In
+                    </Button>
+                  </SignInButton>
+                  <SignUpButton mode="modal">
+                    <Button
+                      className="bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8] text-white rounded-full px-6 py-2 font-medium hover:shadow-lg hover:shadow-[#3ABCF7]/25 transition-all duration-300"
+                      style={{ fontFamily: '"Space Grotesk", sans-serif' }}
+                    >
+                      Sign Up
+                    </Button>
+                  </SignUpButton>
+                </div>
+              </SignedOut>
+              <SignedIn>
+                <UserButton
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-10 h-10 rounded-full border-2 border-gradient-to-r from-[#3ABCF7] to-[#8B2FF8]"
+                    }
+                  }}
+                />
+              </SignedIn>
+            </div>
 
           </div>
         </div>
