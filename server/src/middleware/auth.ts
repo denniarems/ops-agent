@@ -12,6 +12,7 @@ import { z } from 'zod'
 // Cloudflare Workers environment bindings
 type CloudflareBindings = {
   CLERK_SECRET_KEY: string
+  CLERK_PUBLISHABLE_KEY: string
   CLERK_AUTHORIZED_PARTIES?: string
 }
 
@@ -89,6 +90,7 @@ export const clerkAuthMiddleware = async (c: Context<{ Variables: AuthVariables;
     // Create Clerk client using environment bindings
     const clerkClient = createClerkClient({
       secretKey: c.env.CLERK_SECRET_KEY,
+      publishableKey: c.env.CLERK_PUBLISHABLE_KEY,
     })
 
     // Extract JWT token from Authorization header
@@ -135,10 +137,8 @@ export const clerkAuthMiddleware = async (c: Context<{ Variables: AuthVariables;
     const requestState = await clerkClient.authenticateRequest(request, {
       authorizedParties: [c.env.CLERK_AUTHORIZED_PARTIES || 'http://localhost:8080'],
     })
-    console.log("🚀 ~ clerkAuthMiddleware ~ requestState:", requestState)
 
     const auth = requestState.toAuth()
-    console.log("🚀 ~ clerkAuthMiddleware ~ auth:", auth)
 
     if (!auth || !auth.userId) {
       throw new Error('Invalid or expired token')
@@ -146,7 +146,6 @@ export const clerkAuthMiddleware = async (c: Context<{ Variables: AuthVariables;
 
     // Get user details from Clerk
     const clerkUser = await clerkClient.users.getUser(auth.userId)
-    console.log("🚀 ~ clerkAuthMiddleware ~ clerkUser:", clerkUser)
     
     if (!clerkUser) {
       throw new Error('User not found')

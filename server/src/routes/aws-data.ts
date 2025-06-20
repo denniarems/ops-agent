@@ -173,8 +173,8 @@ awsDataRouter.get('/credentials', async (c) => {
 
     // Return full credentials for AWS operations
     const credentials = {
-      accessKey: awsData.key_id,
-      secretKey: awsData.access_key,
+      accessKey: '***************************',
+      secretKey: '***************************',
       region: awsData.region || 'us-east-1'
     }
 

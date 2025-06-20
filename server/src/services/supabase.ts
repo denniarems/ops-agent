@@ -106,27 +106,46 @@ export class AWSDataService {
    * Create or update AWS data for a user
    */
   async upsertAWSData(awsData: Omit<AWSData, 'id' | 'created_at'>): Promise<AWSData> {
-    const { data, error } = await this.supabase
-      .from('aws_data')
-      .upsert(
-        {
+    // First, try to get existing data for the user
+    const existingData = await this.getAWSData(awsData.user_id)
+
+    if (existingData) {
+      // Update existing record
+      const { data, error } = await this.supabase
+        .from('aws_data')
+        .update({
+          key_id: awsData.key_id,
+          access_key: awsData.access_key,
+          region: awsData.region,
+        })
+        .eq('user_id', awsData.user_id)
+        .select()
+        .single()
+
+      if (error) {
+        throw new Error(`Failed to update AWS data: ${error.message}`)
+      }
+
+      return data as AWSData
+    } else {
+      // Insert new record
+      const { data, error } = await this.supabase
+        .from('aws_data')
+        .insert({
           user_id: awsData.user_id,
           key_id: awsData.key_id,
           access_key: awsData.access_key,
           region: awsData.region,
-        },
-        {
-          onConflict: 'user_id',
-        }
-      )
-      .select()
-      .single()
+        })
+        .select()
+        .single()
 
-    if (error) {
-      throw new Error(`Failed to upsert AWS data: ${error.message}`)
+      if (error) {
+        throw new Error(`Failed to insert AWS data: ${error.message}`)
+      }
+
+      return data as AWSData
     }
-
-    return data as AWSData
   }
 
   /**
