@@ -85,6 +85,7 @@ function determineUserTier(clerkUser: any): 'free' | 'pro' | 'enterprise' {
  */
 export const clerkAuthMiddleware = async (c: Context<{ Variables: AuthVariables; Bindings: CloudflareBindings }>, next: Next) => {
   try {
+
     // Create Clerk client using environment bindings
     const clerkClient = createClerkClient({
       secretKey: c.env.CLERK_SECRET_KEY,
@@ -113,25 +114,31 @@ export const clerkAuthMiddleware = async (c: Context<{ Variables: AuthVariables;
       return
     }
 
-    // Create a mock request object for Clerk's authenticateRequest
-    const mockRequest = {
-      headers: {
-        get: (name: string) => {
-          if (name.toLowerCase() === 'authorization') {
-            return `Bearer ${token}`
-          }
-          return null
-        }
-      },
-      url: c.req.url
-    } as any
+    console.log('Token extracted:', token.substring(0, 20) + '...')
 
-    // Authenticate request with Clerk
-    const requestState = await clerkClient.authenticateRequest(mockRequest, {
-      authorizedParties: [c.env.CLERK_AUTHORIZED_PARTIES || 'http://localhost:8080'],
+    // Create a proper request object for Clerk's authenticateRequest
+    console.log('Creating request with URL:', c.req.url)
+    console.log('Authorization header will be:', `Bearer ${token.substring(0, 20)}...`)
+
+    const request = new Request(c.req.url, {
+      method: c.req.method,
+      headers: {
+        'authorization': `Bearer ${token}`,
+        'user-agent': c.req.header('user-agent') || 'ZapGap-Server/1.0',
+        'host': c.req.header('host') || 'localhost:8787',
+      }
     })
 
+    console.log('Request created, calling Clerk authenticateRequest...')
+
+    // Authenticate request with Clerk
+    const requestState = await clerkClient.authenticateRequest(request, {
+      authorizedParties: [c.env.CLERK_AUTHORIZED_PARTIES || 'http://localhost:8080'],
+    })
+    console.log("🚀 ~ clerkAuthMiddleware ~ requestState:", requestState)
+
     const auth = requestState.toAuth()
+    console.log("🚀 ~ clerkAuthMiddleware ~ auth:", auth)
 
     if (!auth || !auth.userId) {
       throw new Error('Invalid or expired token')

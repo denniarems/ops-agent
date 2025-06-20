@@ -7,22 +7,19 @@
   "workspaces": [
     "./server",
     "./client",
-    "./shared",
     "./agent"
   ],
   "scripts": {
     "dev:client": "cd client && bun run dev",
     "dev:server": "cd server && bun run dev",
-    "dev:shared": "cd shared && bun run dev",
     "dev:agent": "cd agent && bun run dev",
-    "dev": "concurrently \"bun run dev:shared\" \"bun run dev:server\" \"bun run dev:client\" \"bun run dev:agent\"",
+    "dev": "concurrently \"bun run dev:server\" \"bun run dev:client\" \"bun run dev:agent\"",
     "build:client": "cd client && bun run build",
-    "build:shared": "cd shared && bun run build",
     "build:server": "cd server && bun run build",
     "build:agent": "cd agent && bun run build",
     "start:agent": "cd agent && bun run start",
     "build": "./build.sh",
-    "postinstall": "bun run build:shared"
+    "postinstall": "bun run build:agent"
   },
   "keywords": [
     "bun",
