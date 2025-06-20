@@ -125,7 +125,7 @@ export const mastra = new Mastra({
   storage: upstashStorage as any,
   logger: new PinoLogger({
     name: 'Mastra',
-    level: 'info',
+    level: 'debug',
   }),
   server: {
     port: 4111,

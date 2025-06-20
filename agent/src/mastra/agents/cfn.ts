@@ -96,6 +96,6 @@ export const cfnAgent = new Agent({
     Prioritize security, cost optimization, and operational excellence.
   `;
   },
-  model: openrouter('mistralai/magistral-medium-2506:thinking'),
+  model: openrouter('mistralai/magistral-medium-2506'),
   memory,
 });
