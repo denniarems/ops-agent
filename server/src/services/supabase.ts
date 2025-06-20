@@ -48,7 +48,7 @@ const SUPABASE_URL = 'https://yersrscnfjaehfzevwuz.supabase.co'
  * Create Supabase client with environment-based configuration
  */
 export function createSupabaseClient(supabaseKey?: string): SupabaseClient<Database> {
-  const key = supabaseKey || process.env.SUPABASE_KEY
+  const key = supabaseKey || Bun.env.SUPABASE_KEY
 
   if (!key) {
     throw new Error('SUPABASE_KEY environment variable is required')

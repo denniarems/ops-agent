@@ -49,7 +49,7 @@ awsDataRouter.get('/', async (c) => {
     }
 
     const userId = runtimeContext['user-id']
-    const awsDataService = new AWSDataService(process.env.SUPABASE_KEY)
+    const awsDataService = new AWSDataService(Bun.env.SUPABASE_KEY)
     
     const awsData = await awsDataService.getAWSData(userId)
     
@@ -104,7 +104,7 @@ awsDataRouter.post('/', async (c) => {
     // Validate request body
     const validatedData = createAWSDataSchema.parse(body)
     
-    const awsDataService = new AWSDataService(process.env.SUPABASE_KEY)
+    const awsDataService = new AWSDataService(Bun.env.SUPABASE_KEY)
     
     const awsData = await awsDataService.upsertAWSData({
       user_id: userId,
@@ -160,7 +160,7 @@ awsDataRouter.get('/credentials', async (c) => {
     }
 
     const userId = runtimeContext['user-id']
-    const awsDataService = new AWSDataService(process.env.SUPABASE_KEY)
+    const awsDataService = new AWSDataService(Bun.env.SUPABASE_KEY)
     
     const awsData = await awsDataService.getAWSData(userId)
     
@@ -197,7 +197,7 @@ awsDataRouter.delete('/', async (c) => {
     }
 
     const userId = runtimeContext['user-id']
-    const awsDataService = new AWSDataService(process.env.SUPABASE_KEY)
+    const awsDataService = new AWSDataService(Bun.env.SUPABASE_KEY)
     
     await awsDataService.deleteAWSData(userId)
 
@@ -226,7 +226,7 @@ awsDataRouter.get('/status', async (c) => {
     }
 
     const userId = runtimeContext['user-id']
-    const awsDataService = new AWSDataService(process.env.SUPABASE_KEY)
+    const awsDataService = new AWSDataService(Bun.env.SUPABASE_KEY)
     
     const hasData = await awsDataService.hasAWSData(userId)
 

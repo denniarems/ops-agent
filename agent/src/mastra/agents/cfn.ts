@@ -8,12 +8,12 @@ import { openrouter } from '../config/model';
 // Initialize memory with Upstash storage and vector search
 const memory = new Memory({
   storage: new UpstashStore({
-    url: process.env.UPSTASH_REDIS_REST_URL as string,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN as string,
+    url: Bun.env.UPSTASH_REDIS_REST_URL as string,
+    token: Bun.env.UPSTASH_REDIS_REST_TOKEN as string,
   }) as any,
   vector: new UpstashVector({
-    url: process.env.UPSTASH_VECTOR_REST_URL as string,
-    token: process.env.UPSTASH_VECTOR_REST_TOKEN as string,
+    url: Bun.env.UPSTASH_VECTOR_REST_URL as string,
+    token: Bun.env.UPSTASH_VECTOR_REST_TOKEN as string,
   }) as any,
   options: {
     lastMessages: 20,

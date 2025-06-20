@@ -9,7 +9,7 @@ const RECOMMENDATIONS_API_URL = 'https://contentrecs-api.docs.aws.amazon.com/v1/
 const DEFAULT_USER_AGENT = 'AWS-Documentation-MCP-Server/1.0';
 
 // Environment configuration
-const AWS_DOCUMENTATION_TIMEOUT = parseInt(process.env.AWS_DOCUMENTATION_TIMEOUT || '30000');
+const AWS_DOCUMENTATION_TIMEOUT = parseInt(Bun.env.AWS_DOCUMENTATION_TIMEOUT || '30000');
 
 // Type definitions
 interface SearchResult {

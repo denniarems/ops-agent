@@ -52,7 +52,7 @@ app.use('*', cors({
 
 // Logger middleware (only in development)
 app.use('*', async (c, next) => {
-  const nodeEnv = process.env.NODE_ENV || 'development'
+  const nodeEnv = Bun.env.NODE_ENV || 'development'
   if (nodeEnv !== 'production') {
     return logger()(c, next)
   }
@@ -82,7 +82,7 @@ app.get('/', (c) => {
 app.get('/health', async (c) => {
   try {
     // Get Mastra agent URL from environment bindings
-    const mastraAgentUrl = process.env.MASTRA_AGENT_URL || 'http://localhost:4111'
+    const mastraAgentUrl = Bun.env.MASTRA_AGENT_URL || 'http://localhost:4111'
 
     // Test Mastra agent server connection
     const healthCheck = await ofetch(`${mastraAgentUrl}/health`, {

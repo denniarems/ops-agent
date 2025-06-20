@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "mastra dev",
+    "dev": "bun --env-file=.env mastra dev",
     "build": "mastra build",
-    "start": "mastra start"
+    "start": "bun --env-file=.env mastra start"
   },
   "keywords": [],
   "author": "",
@@ -32,6 +32,7 @@
     "zod": "^3.25.62"
   },
   "devDependencies": {
+    "@types/bun": "^1.2.16",
     "@types/cheerio": "^1.0.0",
     "@types/node": "^24.0.1",
     "@types/uuid": "^10.0.0",

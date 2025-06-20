@@ -27,10 +27,10 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 
 // Environment configuration
-const AWS_REGION = process.env.AWS_REGION || 'us-east-1';
-const CFN_READONLY = process.env.CFN_MCP_SERVER_READONLY === 'true';
-const CFN_TIMEOUT = parseInt(process.env.CFN_MCP_SERVER_TIMEOUT || '30000');
-const CFN_MAX_RETRIES = parseInt(process.env.CFN_MCP_SERVER_MAX_RETRIES || '3');
+const AWS_REGION = Bun.env.AWS_REGION || 'us-east-1';
+const CFN_READONLY = Bun.env.CFN_MCP_SERVER_READONLY === 'true';
+const CFN_TIMEOUT = parseInt(Bun.env.CFN_MCP_SERVER_TIMEOUT || '30000');
+const CFN_MAX_RETRIES = parseInt(Bun.env.CFN_MCP_SERVER_MAX_RETRIES || '3');
 
 // Enhanced CloudFormation client factory with runtime context support
 export async function createCloudFormationClientFromContext(
