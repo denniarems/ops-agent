@@ -13,12 +13,12 @@ import {
   ArrowLeft, Send, MessageCircle, Zap, ChevronRight,
   RotateCcw, Cloud, CheckCircle, Clock, AlertCircle,
   Shield, Database, Server, BarChart3, Activity,
-  TrendingUp, HardDrive
+  TrendingUp, HardDrive, RefreshCw
 } from "lucide-react";
 import { ChatMessage } from "@/components/ChatMessage";
 import { LoadingQuotes } from "@/components/LoadingQuotes";
 import { SignedIn, UserButton } from "@clerk/clerk-react";
-import { awsService, AWSResourceSummary } from "@/services/awsService";
+import { mockAWSService as awsService, AWSResourceSummary } from "@/services/mockAWSService";
 import AWSResourcesDisplay from "@/components/AWSResourcesDisplay";
 import useAuthenticatedFetch from "@/hooks/useAuthenticatedFetch";
 import useAWSData from "@/hooks/useAWSData";
@@ -63,6 +63,14 @@ const Dashboard = () => {
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
 
+  // Cloud connections state
+  const [cloudConnections, setCloudConnections] = useState({
+    aws: false,
+    gcp: false,
+    azure: false
+  });
+  const [isLoadingConnections, setIsLoadingConnections] = useState(false);
+
   // AWS state
   const [showAWSForm, setShowAWSForm] = useState(false);
   const [awsCredentials, setAwsCredentials] = useState({
@@ -78,12 +86,47 @@ const Dashboard = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Fetch cloud connections status
+  const fetchCloudConnections = async () => {
+    setIsLoadingConnections(true);
+    try {
+      const response = await authenticatedFetch(`${ZAPGAP_SERVER_URL}/api/aws-data/credentials`);
+      if (response.data) {
+        setCloudConnections(response.data);
+
+        // Update AWS connection status based on API response
+        if (response.data.aws && awsConnectionStatus === 'disconnected') {
+          setAwsConnectionStatus('connected');
+        } else if (!response.data.aws && awsConnectionStatus === 'connected') {
+          setAwsConnectionStatus('disconnected');
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch cloud connections:', error);
+    } finally {
+      setIsLoadingConnections(false);
+    }
+  };
+
+  const getProviderStatus = (providerId: string): 'connected' | 'disconnected' | 'coming-soon' => {
+    switch (providerId) {
+      case 'aws':
+        return cloudConnections.aws ? 'connected' : 'disconnected';
+      case 'gcp':
+        return cloudConnections.gcp ? 'connected' : 'coming-soon';
+      case 'azure':
+        return cloudConnections.azure ? 'connected' : 'coming-soon';
+      default:
+        return 'disconnected';
+    }
+  };
+
   const cloudProviders: CloudProvider[] = [
     {
       id: 'aws',
       name: 'Amazon Web Services',
       icon: Cloud,
-      status: awsConnectionStatus === 'connected' ? 'connected' : 'disconnected',
+      status: getProviderStatus('aws'),
       description: 'Connect your AWS account to manage EC2, S3, RDS, and more',
       color: 'from-orange-500 to-yellow-500'
     },
@@ -91,16 +134,16 @@ const Dashboard = () => {
       id: 'gcp',
       name: 'Google Cloud Platform',
       icon: Database,
-      status: 'coming-soon',
-      description: 'Google Cloud integration coming soon',
+      status: getProviderStatus('gcp'),
+      description: cloudConnections.gcp ? 'Google Cloud Platform connected' : 'Google Cloud integration coming soon',
       color: 'from-blue-500 to-green-500'
     },
     {
       id: 'azure',
       name: 'Microsoft Azure',
       icon: Server,
-      status: 'coming-soon',
-      description: 'Azure integration coming soon',
+      status: getProviderStatus('azure'),
+      description: cloudConnections.azure ? 'Microsoft Azure connected' : 'Azure integration coming soon',
       color: 'from-blue-600 to-cyan-500'
     }
   ];
@@ -112,6 +155,11 @@ const Dashboard = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Fetch cloud connections on component mount
+  useEffect(() => {
+    fetchCloudConnections();
+  }, []);
 
   // Restore AWS connection on component mount from Supabase
   useEffect(() => {
@@ -139,6 +187,9 @@ const Dashboard = () => {
 
             // Fetch fresh resources
             await fetchAWSResources();
+
+            // Refresh cloud connections to reflect restored connection
+            await fetchCloudConnections();
           }
         }
       } catch (error) {
@@ -244,6 +295,9 @@ const Dashboard = () => {
       // Fetch AWS resources after successful connection
       await fetchAWSResources();
 
+      // Refresh cloud connections to reflect the new status
+      await fetchCloudConnections();
+
     } catch (error) {
       console.error('AWS connection failed:', error);
       setAwsConnectionStatus('disconnected');
@@ -279,9 +333,15 @@ const Dashboard = () => {
     // Clear AWS data from Supabase
     try {
       await deleteAWSData();
+      // Refresh cloud connections after disconnecting
+      await fetchCloudConnections();
     } catch (error) {
       console.warn('Could not clear AWS data from database:', error);
     }
+  };
+
+  const handleRefreshConnections = () => {
+    fetchCloudConnections();
   };
 
   const getStatusIcon = (status: string) => {
@@ -398,11 +458,28 @@ const Dashboard = () => {
               >
                 <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
                   <CardHeader>
-                    <CardTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8]"
-                               style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
-                      Cloud Provider Connections
-                    </CardTitle>
-                    <p className="text-gray-400">Connect your cloud accounts to start managing your infrastructure</p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8]"
+                                   style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
+                          Cloud Provider Connections
+                        </CardTitle>
+                        <p className="text-gray-400">
+                          Connect your cloud accounts to start managing your infrastructure
+                          {isLoadingConnections && (
+                            <span className="ml-2 text-sm text-blue-400">• Checking connections...</span>
+                          )}
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleRefreshConnections}
+                        disabled={isLoadingConnections}
+                        className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors disabled:opacity-50"
+                        title="Refresh connection status"
+                      >
+                        <RefreshCw className={`w-4 h-4 text-white ${isLoadingConnections ? 'animate-spin' : ''}`} />
+                      </button>
+                    </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {cloudProviders.map((provider) => (

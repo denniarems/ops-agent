@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@clerk/backend": "^2.1.0",
+    "@supabase/auth-js": "^2.70.0",
     "@supabase/supabase-js": "^2.50.0",
     "agent": "workspace:*",
     "hono": "^4.7.11",

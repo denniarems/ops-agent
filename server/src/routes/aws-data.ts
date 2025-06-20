@@ -164,23 +164,16 @@ awsDataRouter.get('/credentials', async (c) => {
     
     const awsData = await awsDataService.getAWSData(userId)
     
-    if (!awsData) {
-      return c.json({ 
-        data: null,
-        message: 'No AWS credentials found for user'
-      })
-    }
-
-    // Return full credentials for AWS operations
-    const credentials = {
-      accessKey: '***************************',
-      secretKey: '***************************',
-      region: awsData.region || 'us-east-1'
+    const connections ={
+      aws: awsData ? true : false,
+      // Add more cloud providers as needed
+      gcp: false,
+      azure: false
     }
 
     return c.json({
-      data: credentials,
-      message: 'AWS credentials retrieved successfully'
+      data: connections,
+      message: 'Cloud connections retrieved successfully'
     })
   } catch (error) {
     console.error('Error getting AWS credentials:', error)

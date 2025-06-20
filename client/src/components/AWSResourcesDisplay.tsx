@@ -3,11 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import {
-  Server, Database, HardDrive, Users, Shield, Key,
+  Server, Database, HardDrive, Users,
   Network, Cloud, ChevronDown, ChevronRight, RefreshCw,
   CheckCircle, AlertCircle, Clock, Activity
 } from "lucide-react";
-import { AWSResourceSummary, EC2Instance, S3Bucket, RDSInstance, IAMUser } from "@/services/awsService";
+import { AWSResourceSummary, EC2Instance, S3Bucket, RDSInstance, IAMUser } from "@/services/mockAWSService";
 
 interface AWSResourcesDisplayProps {
   resources: AWSResourceSummary;

@@ -18,8 +18,7 @@
     "build:server": "cd server && bun run build",
     "build:agent": "cd agent && bun run build",
     "start:agent": "cd agent && bun run start",
-    "build": "./build.sh",
-    "postinstall": "bun run build:agent"
+    "build": "./build.sh"
   },
   "keywords": [
     "bun",
