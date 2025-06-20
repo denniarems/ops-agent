@@ -1,3 +1,4 @@
+import { ConnectedService, ServiceSummary } from '@/data/mockConnectedServicesData';
 import { ComponentType } from 'react';
 
 // Import connected services types
@@ -10,6 +11,41 @@ export type {
   ServiceSummary
 } from '@/data/mockConnectedServicesData';
 
+// AI Agent types
+export type AgentType = 'coreAgent' | 'cfnAgent' | 'documentationAgent';
+
+// API Response types for Mastra agent communication
+export interface AgentAPIResponse {
+  message: string;
+  threadId: string;
+  runId: string;
+  success: boolean;
+  agentName: string;
+  timestamp: string;
+}
+
+export interface AgentAPIErrorResponse {
+  error: string;
+  message?: string;
+  success: false;
+  details?: any;
+}
+
+// Conversation management types
+export interface ConversationContext {
+  threadId: string;
+  agentName: AgentType;
+  lastActivity: Date;
+  messageCount: number;
+}
+
+export interface AgentOption {
+  id: AgentType;
+  name: string;
+  description: string;
+  icon: string;
+}
+
 // Message interface for chat functionality
 export interface Message {
   id: string;
@@ -17,6 +53,8 @@ export interface Message {
   sender: 'user' | 'assistant';
   timestamp: Date;
   isError?: boolean;
+  threadId?: string;
+  runId?: string;
 }
 
 // Cloud provider interface
@@ -74,8 +112,10 @@ export interface AIAssistantProps {
   messages: Message[];
   inputValue: string;
   isTyping: boolean;
+  selectedAgent: AgentType;
   onSendMessage: (e: React.FormEvent) => void;
   onInputChange: (value: string) => void;
+  onAgentChange: (agent: AgentType) => void;
   onClearChat: () => void;
   messagesEndRef: React.RefObject<HTMLDivElement>;
   inputRef: React.RefObject<HTMLInputElement>;
@@ -147,9 +187,15 @@ export interface UseChatReturn {
   messages: Message[];
   inputValue: string;
   isTyping: boolean;
+  selectedAgent: AgentType;
   messagesEndRef: React.RefObject<HTMLDivElement>;
   inputRef: React.RefObject<HTMLInputElement>;
   setInputValue: (value: string) => void;
+  setSelectedAgent: (agent: AgentType) => void;
   handleSendMessage: (e: React.FormEvent) => Promise<void>;
   handleClearChat: () => void;
+  // Conversation management
+  currentThreadId: string | null;
+  conversationContext: ConversationContext | null;
+  startNewConversation: () => void;
 }

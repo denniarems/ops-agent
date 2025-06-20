@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  MessageCircle, Zap, ChevronRight, RotateCcw, Send
+  MessageCircle, ChevronRight, RotateCcw, Send
 } from 'lucide-react';
 import { ChatMessage } from '@/components/ChatMessage';
 import { LoadingQuotes } from '@/components/LoadingQuotes';
+import { AgentSelector } from '@/components/AgentSelector';
 import { AIAssistantProps } from '@/types/dashboard';
 
 /**
@@ -18,8 +19,10 @@ const AIAssistant = memo<AIAssistantProps>(({
   messages,
   inputValue,
   isTyping,
+  selectedAgent,
   onSendMessage,
   onInputChange,
+  onAgentChange,
   onClearChat,
   messagesEndRef,
   inputRef
@@ -106,8 +109,10 @@ const AIAssistant = memo<AIAssistantProps>(({
           <ChatInput
             inputValue={inputValue}
             isTyping={isTyping}
+            selectedAgent={selectedAgent}
             onSendMessage={onSendMessage}
             onInputChange={onInputChange}
+            onAgentChange={onAgentChange}
             inputRef={inputRef}
           />
         </CardContent>
@@ -188,10 +193,12 @@ const SuggestionButton = memo<{
 const ChatInput = memo<{
   inputValue: string;
   isTyping: boolean;
+  selectedAgent: import('@/types/dashboard').AgentType;
   onSendMessage: (e: React.FormEvent) => void;
   onInputChange: (value: string) => void;
+  onAgentChange: (agent: import('@/types/dashboard').AgentType) => void;
   inputRef: React.RefObject<HTMLInputElement>;
-}>(({ inputValue, isTyping, onSendMessage, onInputChange, inputRef }) => {
+}>(({ inputValue, isTyping, selectedAgent, onSendMessage, onInputChange, onAgentChange, inputRef }) => {
   const handleInputChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     onInputChange(e.target.value);
   }, [onInputChange]);
@@ -205,11 +212,16 @@ const ChatInput = memo<{
             value={inputValue}
             onChange={handleInputChange}
             placeholder="Ask about your infrastructure..."
-            className="w-full bg-white/10 border-white/20 text-white placeholder:text-gray-400 rounded-xl py-3 px-4 pr-12 focus:border-[#3ABCF7] focus:ring-[#3ABCF7] shadow-lg backdrop-blur-sm transition-all duration-300 hover:bg-white/15 focus:bg-white/15"
+            className="w-full bg-white/10 border-white/20 text-white placeholder:text-gray-400 rounded-xl py-3 px-4 pr-40 focus:border-[#3ABCF7] focus:ring-[#3ABCF7] shadow-lg backdrop-blur-sm transition-all duration-300 hover:bg-white/15 focus:bg-white/15"
             style={{ fontFamily: '"Space Grotesk", sans-serif' }}
           />
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            <Zap className="w-5 h-5 text-gray-400" />
+            <AgentSelector
+              selectedAgent={selectedAgent}
+              onAgentChange={onAgentChange}
+              disabled={isTyping}
+              className="scale-90"
+            />
           </div>
         </div>
         <Button
@@ -217,7 +229,14 @@ const ChatInput = memo<{
           disabled={!inputValue.trim() || isTyping}
           className="bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8] hover:from-[#3ABCF7]/90 hover:to-[#8B2FF8]/90 text-white px-6 py-3 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
         >
-          <Send className="w-5 h-5" />
+          {isTyping ? (
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              <span className="text-sm">Thinking...</span>
+            </div>
+          ) : (
+            <Send className="w-5 h-5" />
+          )}
         </Button>
       </form>
     </div>

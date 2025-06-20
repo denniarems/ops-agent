@@ -1,12 +1,12 @@
-# Mastra Agent Streaming API
+# Mastra Agent API
 
-This module provides streaming communication with Mastra agents, including AWS credentials integration and proper authentication.
+This module provides standard JSON communication with Mastra agents, including AWS credentials integration and proper authentication.
 
 ## Endpoints
 
 ### POST /api/streaming/stream
 
-Stream communication with a Mastra agent.
+Standard JSON communication with a Mastra agent.
 
 **Authentication:** Required (Clerk JWT token)
 
@@ -30,7 +30,15 @@ Stream communication with a Mastra agent.
 }
 ```
 
-**Response:** Streaming text response from the Mastra agent
+**Response:** JSON response from the Mastra agent
+```json
+{
+  "message": "I'll help you create a simple S3 bucket...",
+  "success": true,
+  "agentName": "cfnAgent",
+  "timestamp": "2025-01-20T10:30:00.000Z"
+}
+```
 
 **Example using fetch:**
 ```javascript
@@ -51,17 +59,10 @@ const response = await fetch('/api/streaming/stream', {
   })
 });
 
-// Handle streaming response
-const reader = response.body.getReader();
-const decoder = new TextDecoder();
-
-while (true) {
-  const { done, value } = await reader.read();
-  if (done) break;
-  
-  const chunk = decoder.decode(value);
-  console.log('Received chunk:', chunk);
-}
+// Handle JSON response
+const data = await response.json();
+console.log('Agent response:', data.message);
+console.log('Success:', data.success);
 ```
 
 ### GET /api/streaming/agents
@@ -88,7 +89,7 @@ Check connectivity to the Mastra agent server.
 ```json
 {
   "status": "healthy",
-  "service": "mastra-agent-streaming",
+  "service": "mastra-agent-api",
   "timestamp": "2025-01-20T10:30:00.000Z",
   "mastraAgent": {
     "status": "connected",
@@ -106,7 +107,7 @@ Check connectivity to the Mastra agent server.
 
 ## AWS Credentials Integration
 
-The streaming API automatically retrieves AWS credentials from Supabase for authenticated users and passes them via HTTP headers to the Mastra agent:
+The API automatically retrieves AWS credentials from Supabase for authenticated users and passes them via HTTP headers to the Mastra agent:
 
 **Headers sent to Mastra agent:**
 ```
@@ -142,7 +143,7 @@ The API provides comprehensive error handling:
 
 - All endpoints require authentication except `/health`
 - AWS credentials are securely retrieved from Supabase
-- Streaming responses maintain secure headers
+- JSON responses maintain secure headers
 - Request validation prevents malformed payloads
 
 ## Usage Examples
@@ -154,10 +155,10 @@ import { useAuth } from '@clerk/nextjs';
 
 function ChatWithAgent() {
   const { getToken } = useAuth();
-  
-  const streamToAgent = async (message: string) => {
+
+  const chatWithAgent = async (message: string) => {
     const token = await getToken();
-    
+
     const response = await fetch('/api/streaming/stream', {
       method: 'POST',
       headers: {
@@ -169,23 +170,17 @@ function ChatWithAgent() {
         messages: [{ role: 'user', content: message }]
       })
     });
-    
-    // Handle streaming response
-    const reader = response.body?.getReader();
-    if (!reader) return;
-    
-    const decoder = new TextDecoder();
-    
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      
-      const chunk = decoder.decode(value);
-      // Update UI with streaming content
-      setStreamingContent(prev => prev + chunk);
+
+    // Handle JSON response
+    const data = await response.json();
+    if (data.success) {
+      // Update UI with agent response
+      setAgentResponse(data.message);
+    } else {
+      console.error('Agent error:', data.error);
     }
   };
-  
+
   return (
     // Your component JSX
   );
@@ -197,7 +192,7 @@ function ChatWithAgent() {
 ```javascript
 import { ofetch } from 'ofetch';
 
-async function streamToMastraAgent(agentName, messages, authToken) {
+async function chatWithMastraAgent(agentName, messages, authToken) {
   try {
     const response = await ofetch('/api/streaming/stream', {
       method: 'POST',
@@ -210,13 +205,12 @@ async function streamToMastraAgent(agentName, messages, authToken) {
         maxRetries: 3,
         maxSteps: 10,
         temperature: 0.7
-      },
-      responseType: 'stream'
+      }
     });
 
-    return response;
+    return response.message;
   } catch (error) {
-    console.error('Streaming error:', error);
+    console.error('API error:', error);
     throw error;
   }
 }
@@ -224,7 +218,7 @@ async function streamToMastraAgent(agentName, messages, authToken) {
 
 ## Header-Based AWS Credentials Flow
 
-The streaming API uses a header-based approach for passing AWS credentials:
+The API uses a header-based approach for passing AWS credentials:
 
 1. **Server retrieves** AWS credentials from Supabase for authenticated users
 2. **Server adds** AWS credentials to HTTP headers when calling Mastra agent:

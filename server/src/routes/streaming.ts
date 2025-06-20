@@ -5,9 +5,9 @@ import { AWSDataService } from '../services/supabase'
 import { requireAuth, type AuthVariables, type RuntimeContext } from '../middleware/auth'
 
 /**
- * Mastra Agent Streaming API Routes
- * 
- * Provides streaming communication with Mastra agents
+ * Mastra Agent API Routes
+ *
+ * Provides standard JSON communication with Mastra agents
  * with AWS credentials integration and proper authentication
  */
 
@@ -44,7 +44,7 @@ function generateUUID(): string {
   })
 }
 
-// Create streaming router
+// Create API router
 const streamingRouter = new Hono<{
   Variables: AuthVariables
   Bindings: CloudflareBindings
@@ -105,17 +105,17 @@ async function buildAWSHeaders(
 }
 
 /**
- * POST /stream
- * Stream communication with Mastra agents
+ * POST /chat
+ * Standard JSON communication with Mastra agents
  */
-streamingRouter.post('/stream', async (c) => {
+streamingRouter.post('/', async (c) => {
   try {
     const runtimeContext = c.get('runtimeContext')
     
     if (!runtimeContext || !runtimeContext['is-authenticated']) {
       return c.json({ error: 'Authentication required' }, 401)
     }
-
+    
     const body = await c.req.json()
     
     // Validate request body
@@ -131,10 +131,10 @@ streamingRouter.post('/stream', async (c) => {
     
     // Build runtime context (without AWS credentials - they go in headers)
     const baseRuntimeContext = buildRuntimeContext(runtimeContext)
-
+    
     // Build AWS headers with credentials
     const awsHeaders = await buildAWSHeaders(runtimeContext, c.env.SUPABASE_KEY)
-
+    
     // Prepare request payload for Mastra agent
     const requestPayload = {
       messages: validatedData.messages,
@@ -147,93 +147,49 @@ streamingRouter.post('/stream', async (c) => {
       threadId,
       resourceId,
     }
-
-    // Construct the streaming endpoint URL
-    const streamingUrl = `${baseUrl}/api/agents/${validatedData.agentName}/stream`
-
-    console.log(`Streaming to Mastra agent: ${streamingUrl}`)
+    
+    // Construct the generate endpoint URL
+    const chatUrl = `${baseUrl}/api/agents/${validatedData.agentName}/generate`
+    
+    console.log(`Sending request to Mastra agent: ${chatUrl}`)
     console.log('Request payload:', JSON.stringify(requestPayload, null, 2))
     console.log('AWS headers:', Object.keys(awsHeaders).filter(k => k.startsWith('X-AWS')))
-
-    // Make streaming request to Mastra agent with AWS credentials in headers
-    const response = await ofetch(streamingUrl, {
+    
+    // Make standard JSON request to Mastra agent with AWS credentials in headers
+    const response = await ofetch(chatUrl, {
       method: 'POST',
       headers: awsHeaders,
       body: requestPayload,
-      // Enable streaming response
-      responseType: 'stream',
     })
     
-    // Set appropriate headers for streaming response
-    c.header('Content-Type', 'text/plain; charset=utf-8')
-    c.header('Transfer-Encoding', 'chunked')
-    c.header('Cache-Control', 'no-cache')
-    c.header('Connection', 'keep-alive')
-    
-    // Return the streaming response
-    return new Response(response as ReadableStream, {
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Transfer-Encoding': 'chunked',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-      },
+    // Extract message content from response
+    const messageContent = response?.message || response?.content || response?.text || 'No response received from agent'
+
+    // Return standard JSON response
+    return c.json({
+      message: messageContent,
+      threadId,
+      runId,
+      success: true,
+      agentName: validatedData.agentName,
+      timestamp: new Date().toISOString()
     })
     
   } catch (error) {
-    console.error('Error in streaming endpoint:', error)
-    
+    console.error('Error in chat endpoint:', error)
+
     if (error instanceof z.ZodError) {
       return c.json({
         error: 'Validation error',
-        details: error.errors
+        details: error.errors,
+        success: false
       }, 400)
     }
-    
-    return c.json({
-      error: 'Failed to stream to Mastra agent',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }, 500)
-  }
-})
-
-/**
- * GET /agents
- * List available agents from the Mastra agent server
- */
-streamingRouter.get('/agents', async (c) => {
-  try {
-    const runtimeContext = c.get('runtimeContext')
-
-    if (!runtimeContext || !runtimeContext['is-authenticated']) {
-      return c.json({ error: 'Authentication required' }, 401)
-    }
-
-    // Get Mastra agent URL from environment
-    const baseUrl = c.env.MASTRA_AGENT_URL || 'http://localhost:4111'
-
-    // Fetch available agents
-    const agentsUrl = `${baseUrl}/api/agents`
-
-    const agents = await ofetch(agentsUrl, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      timeout: 10000,
-    })
 
     return c.json({
-      data: agents,
-      message: 'Available agents retrieved successfully'
-    })
-
-  } catch (error) {
-    console.error('Error fetching available agents:', error)
-
-    return c.json({
-      error: 'Failed to fetch available agents',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      error: 'Failed to communicate with Mastra agent',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      success: false
     }, 500)
   }
 })
@@ -255,7 +211,7 @@ streamingRouter.get('/health', async (c) => {
 
     return c.json({
       status: isHealthy ? 'healthy' : 'degraded',
-      service: 'mastra-agent-streaming',
+      service: 'mastra-agent-api',
       timestamp: new Date().toISOString(),
       mastraAgent: {
         status: isHealthy ? 'connected' : 'disconnected',
@@ -266,7 +222,7 @@ streamingRouter.get('/health', async (c) => {
   } catch (error) {
     return c.json({
       status: 'unhealthy',
-      service: 'mastra-agent-streaming',
+      service: 'mastra-agent-api',
       timestamp: new Date().toISOString(),
       error: error instanceof Error ? error.message : 'Unknown error',
     }, 503)

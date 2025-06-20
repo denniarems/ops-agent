@@ -47,11 +47,11 @@ export const awsHeaderContextMiddleware = async (c: Context, next: Next) => {
     if (runtimeContext) {
       // Extract AWS permanent credentials from headers only (no env fallbacks)
       const accessKeyId = c.req.header('X-AWS-Access-Key-ID') ||
-                         c.req.header('x-aws-access-key-id') || '';
-
+      c.req.header('x-aws-access-key-id') || '';
+      
       const secretAccessKey = c.req.header('X-AWS-Secret-Access-Key') ||
-                             c.req.header('x-aws-secret-access-key') || '';
-
+      c.req.header('x-aws-secret-access-key') || '';
+      
       // Only set credentials if both are provided via headers
       if (accessKeyId && secretAccessKey) {
         runtimeContext.set('aws-credentials', {
@@ -60,8 +60,6 @@ export const awsHeaderContextMiddleware = async (c: Context, next: Next) => {
         });
 
         console.log('AWS context set from headers (permanent credentials only)');
-      } else {
-        console.warn('AWS credentials not provided via headers - accessKeyId and secretAccessKey required');
       }
     } else {
       console.warn('RuntimeContext not available in Hono context');

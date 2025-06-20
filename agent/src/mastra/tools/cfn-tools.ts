@@ -50,6 +50,7 @@ export async function createCloudFormationClientFromContext(
 
     // Get credentials with error handling
     const credentials = await getTemporaryCredentialsFromContext(runtimeContext);
+    console.log("🚀 ~ credentials:", credentials)
 
     return new CloudFormationClient({
       region: AWS_REGION,

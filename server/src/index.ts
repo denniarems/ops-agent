@@ -117,6 +117,6 @@ app.get('/health', async (c) => {
 app.route('/api/aws-data', awsDataRouter)
 
 // Mount streaming routes
-app.route('/api/streaming', streamingRouter)
+app.route('/api/chat', streamingRouter)
 
 export default app

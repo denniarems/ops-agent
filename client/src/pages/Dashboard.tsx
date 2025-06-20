@@ -447,8 +447,10 @@ const Dashboard = React.memo(() => {
                 messages={chat.messages}
                 inputValue={chat.inputValue}
                 isTyping={chat.isTyping}
+                selectedAgent={chat.selectedAgent}
                 onSendMessage={chat.handleSendMessage}
                 onInputChange={chat.setInputValue}
+                onAgentChange={chat.setSelectedAgent}
                 onClearChat={chat.handleClearChat}
                 messagesEndRef={chat.messagesEndRef}
                 inputRef={chat.inputRef}
