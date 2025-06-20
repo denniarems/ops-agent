@@ -26,7 +26,7 @@ const streamingRequestSchema = z.object({
     role: z.enum(['user', 'assistant', 'system']),
     content: z.string().min(1, 'Message content is required')
   })).min(1, 'At least one message is required'),
-  threadId: z.string().optional(),
+  threadId: z.string().min(1, 'Thread ID is required'),
   runId: z.string().optional(),
   maxRetries: z.number().int().min(0).max(10).default(2),
   maxSteps: z.number().int().min(1).max(20).default(5),
@@ -35,14 +35,7 @@ const streamingRequestSchema = z.object({
   resourceId: z.string().optional(),
 })
 
-// Generate a UUID v4
-function generateUUID(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0
-    const v = c === 'x' ? r : (r & 0x3 | 0x8)
-    return v.toString(16)
-  })
-}
+
 
 // Create API router
 const streamingRouter = new Hono<{
@@ -124,8 +117,8 @@ streamingRouter.post('/', async (c) => {
     // Get Mastra agent URL from environment
     const baseUrl = c.env.MASTRA_AGENT_URL || 'http://localhost:4111'
     
-    // Generate IDs if not provided
-    const threadId = validatedData.threadId || generateUUID()
+    // Use client-provided threadId and generate other IDs if not provided
+    const threadId = validatedData.threadId // Required by schema validation
     const runId = validatedData.runId || validatedData.agentName
     const resourceId = validatedData.resourceId || validatedData.agentName
     

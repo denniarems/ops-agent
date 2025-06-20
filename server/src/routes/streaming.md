@@ -20,7 +20,7 @@ Standard JSON communication with a Mastra agent.
       "content": "Create a simple S3 bucket"
     }
   ],
-  "threadId": "optional-thread-id",
+  "threadId": "required-thread-id-generated-by-client",
   "runId": "optional-run-id",
   "maxRetries": 2,
   "maxSteps": 5,
@@ -30,10 +30,19 @@ Standard JSON communication with a Mastra agent.
 }
 ```
 
+**Parameters:**
+- `threadId` (required): Client-generated conversation identifier for maintaining context across messages
+- `agentName` (required): Name of the agent to communicate with
+- `messages` (required): Array of conversation messages
+- `runId` (optional): Execution identifier for individual agent runs
+- `maxRetries`, `maxSteps`, `temperature`, `topP` (optional): Agent execution parameters
+
 **Response:** JSON response from the Mastra agent
 ```json
 {
   "message": "I'll help you create a simple S3 bucket...",
+  "threadId": "client-generated-thread-id",
+  "runId": "cfnAgent_1642680600000_abc123",
   "success": true,
   "agentName": "cfnAgent",
   "timestamp": "2025-01-20T10:30:00.000Z"
@@ -50,6 +59,7 @@ const response = await fetch('/api/streaming/stream', {
   },
   body: JSON.stringify({
     agentName: 'cfnAgent',
+    threadId: 'client-generated-uuid-here',
     messages: [
       {
         role: 'user',

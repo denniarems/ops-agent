@@ -74,8 +74,15 @@ export const useChat = (): UseChatReturn => {
     try {
       const config = getAgentConfig(agentName);
 
-      // Get current threadId and generate runId
-      const threadId = getThreadId(agentName);
+      // Ensure we have a threadId (generate client-side if needed)
+      let threadId = getThreadId(agentName);
+      if (!threadId) {
+        // This should not happen with current implementation, but safety check
+        threadId = startNewConversation(agentName);
+        setCurrentThreadId(threadId);
+      }
+
+      // Generate runId for this specific execution
       const runId = generateRunId(agentName);
 
       const response = await authenticatedFetch(`${ZAPGAP_SERVER_URL}/api/chat`, {
@@ -179,19 +186,18 @@ export const useChat = (): UseChatReturn => {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
     }
+
+    // Clear UI state
     setMessages([]);
     setIsTyping(false);
-  }, []);
 
-  const handleStartNewConversation = useCallback(() => {
-    // Clear current chat
-    handleClearChat();
-
-    // Start new conversation for current agent
+    // Start new conversation for current agent (clears threadId and context)
     const newThreadId = startNewConversation(selectedAgent);
     setCurrentThreadId(newThreadId);
     setConversationContext(null);
-  }, [selectedAgent, handleClearChat]);
+
+    console.log(`Started new conversation for ${selectedAgent} with threadId: ${newThreadId}`);
+  }, [selectedAgent]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -216,6 +222,6 @@ export const useChat = (): UseChatReturn => {
     // Conversation management
     currentThreadId,
     conversationContext,
-    startNewConversation: handleStartNewConversation
+    startNewConversation: handleClearChat // Clear chat now starts new conversation
   };
 };
