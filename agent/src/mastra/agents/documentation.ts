@@ -3,8 +3,6 @@ import { Memory } from '@mastra/memory';
 import { UpstashStore, UpstashVector } from '@mastra/upstash';
 import { documentationTools } from '../tools/documentation-tools';
 import { openrouter } from '../config/model';
-import { getAWSConfigFromContext } from '../utils/aws-runtime-context';
-import { createContextSummary, getUserTierFromContext, getUserLanguageFromContext } from '../utils/user-context-utils';
 
 // Initialize memory with Upstash storage and vector search
 const memory = new Memory({
@@ -24,40 +22,24 @@ const memory = new Memory({
 export const documentationAgent = new Agent({
   name: 'AWS Documentation Agent',
   tools({ runtimeContext }) {
-    // Log user context for debugging
+    // Log AWS context for debugging
     if (runtimeContext) {
-      const contextSummary = createContextSummary(runtimeContext);
-      console.log(`Documentation Agent tools initialized for: ${contextSummary}`);
+      const hasCredentials = runtimeContext.get('aws-credentials');
+      console.log(`Documentation Agent tools initialized with AWS credentials: ${!!hasCredentials}`);
     }
 
     // Documentation tools are runtime context-aware for AWS-specific configurations
     return documentationTools;
   },
   instructions: ({ runtimeContext }) => {
-    // Dynamic instructions based on runtime context
-    const config = runtimeContext ? getAWSConfigFromContext(runtimeContext) : null;
-    const regionInfo = config ? ` (focused on ${config.region} region)` : '';
-
-    // Extract user context for personalized responses
-    const userTier = runtimeContext ? getUserTierFromContext(runtimeContext) : 'free';
-    const userLanguage = runtimeContext ? getUserLanguageFromContext(runtimeContext) : 'en';
-
-    const tierGuidance = userTier === 'enterprise'
-      ? 'Provide comprehensive, enterprise-level documentation with advanced configurations, detailed security guidance, and complex architectural patterns.'
-      : userTier === 'pro'
-      ? 'Provide professional-level documentation with practical examples, security best practices, and intermediate architectural guidance.'
-      : 'Provide clear, beginner-friendly documentation with simple examples, basic security practices, and cost-effective solutions.';
-
-    const languageNote = userLanguage !== 'en'
-      ? `\n\nIMPORTANT: Respond in ${userLanguage} language when possible, but AWS service names, API parameters, and code examples should remain in English.`
-      : '';
+    // Dynamic instructions based on AWS runtime context only
+    const hasCredentials = runtimeContext && runtimeContext.get('aws-credentials');
+    const credentialInfo = hasCredentials ? ' with AWS credentials configured' : ' (no AWS credentials available)';
 
     return `
-    Specialized AWS documentation and knowledge retrieval agent for providing comprehensive AWS guidance${regionInfo}.
+    Specialized AWS documentation and knowledge retrieval agent for providing comprehensive AWS guidance${credentialInfo}.
 
-    User Context: ${userTier} tier user${languageNote}
-
-    ${tierGuidance}
+    Provide clear, practical documentation with examples, security best practices, and architectural guidance.
 
     Core Capabilities:
     • Access real-time AWS documentation and API references

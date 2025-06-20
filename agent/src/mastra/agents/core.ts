@@ -4,8 +4,6 @@ import { UpstashStore, UpstashVector } from '@mastra/upstash';
 import { coreTools } from '../tools/core-tools';
 import { openrouter } from '../config/model';
 import { documentationAccessWorkflow } from '../workflows/documentation-access';
-import { getAWSSecurityConfigFromContext } from '../utils/aws-runtime-context';
-import { createContextSummary, getUserTierFromContext, getUserLanguageFromContext } from '../utils/user-context-utils';
 
 // Initialize memory with Upstash storage and vector search
 const memory = new Memory({
@@ -26,40 +24,24 @@ const memory = new Memory({
 export const coreAgent = new Agent({
   name: 'AWS Core Planning Agent',
   tools({ runtimeContext }) {
-    // Log user context for debugging
+    // Log AWS context for debugging
     if (runtimeContext) {
-      const contextSummary = createContextSummary(runtimeContext);
-      console.log(`Core Agent tools initialized for: ${contextSummary}`);
+      const hasCredentials = runtimeContext.get('aws-credentials');
+      console.log(`Core Agent tools initialized with AWS credentials: ${!!hasCredentials}`);
     }
 
     // Core tools are runtime context-aware for AWS coordination and user context
     return coreTools;
   },
   instructions: ({ runtimeContext }) => {
-    // Dynamic instructions based on runtime context
-    const securityConfig = runtimeContext ? getAWSSecurityConfigFromContext(runtimeContext) : null;
-    const tenantInfo = securityConfig ? ` for tenant "${securityConfig.tenantId}" in ${securityConfig.environment} environment` : '';
-
-    // Extract user context for personalized responses
-    const userTier = runtimeContext ? getUserTierFromContext(runtimeContext) : 'free';
-    const userLanguage = runtimeContext ? getUserLanguageFromContext(runtimeContext) : 'en';
-
-    const tierGuidance = userTier === 'enterprise'
-      ? 'Provide comprehensive enterprise-grade solutions with advanced features and detailed implementation guidance.'
-      : userTier === 'pro'
-      ? 'Provide professional-level solutions with good detail and practical implementation steps.'
-      : 'Provide clear, beginner-friendly solutions with step-by-step guidance and cost-conscious recommendations.';
-
-    const languageNote = userLanguage !== 'en'
-      ? `\n\nIMPORTANT: Respond in ${userLanguage} language when possible, but technical terms and AWS service names should remain in English.`
-      : '';
+    // Dynamic instructions based on AWS runtime context only
+    const hasCredentials = runtimeContext && runtimeContext.get('aws-credentials');
+    const credentialInfo = hasCredentials ? ' with AWS credentials configured' : ' (no AWS credentials available)';
 
     return `
-    AWS Core Planning agent for intelligent planning and orchestration of AWS solutions${tenantInfo}.
+    AWS Core Planning agent for intelligent planning and orchestration of AWS solutions${credentialInfo}.
 
-    User Context: ${userTier} tier user${languageNote}
-
-    ${tierGuidance}
+    Provide clear, practical AWS solutions with step-by-step guidance and implementation details.
 
     Core Capabilities:
     • Planning and guidance for orchestrating AWS solutions

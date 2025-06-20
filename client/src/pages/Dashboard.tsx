@@ -6,10 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowLeft, Send, Sparkles, MessageCircle, Zap, ChevronRight,
-  RotateCcw, Cloud, Settings, CheckCircle, Clock, AlertCircle,
-  Shield, Database, Server, Network, BarChart3, Activity,
-  TrendingUp, Users, HardDrive, Cpu, Wifi
+  ArrowLeft, Send, MessageCircle, Zap, ChevronRight,
+  RotateCcw, Cloud, CheckCircle, Clock, AlertCircle,
+  Shield, Database, Server, BarChart3, Activity,
+  TrendingUp, HardDrive
 } from "lucide-react";
 import { ChatMessage } from "@/components/ChatMessage";
 import { LoadingQuotes } from "@/components/LoadingQuotes";
@@ -17,6 +17,7 @@ import { SignedIn, UserButton } from "@clerk/clerk-react";
 import { awsService, AWSResourceSummary } from "@/services/awsService";
 import AWSResourcesDisplay from "@/components/AWSResourcesDisplay";
 import useAuthenticatedFetch from "@/hooks/useAuthenticatedFetch";
+import useAWSData from "@/hooks/useAWSData";
 
 interface Message {
   id: string;
@@ -44,6 +45,14 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("connections");
   const { authenticatedFetch } = useAuthenticatedFetch();
+  const {
+    getAWSDataStatus,
+    getAWSCredentials,
+    saveAWSData,
+    deleteAWSData,
+    error: awsDataError,
+    clearError: clearAWSDataError
+  } = useAWSData();
 
   // Chat state
   const [messages, setMessages] = useState<Message[]>([]);
@@ -57,21 +66,8 @@ const Dashboard = () => {
     secretKey: '',
     region: 'us-east-1'
   });
-  const [awsConnectionStatus, setAwsConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected'>(() => {
-    try {
-      return localStorage.getItem('zapgap_aws_connection_status') as 'disconnected' | 'connecting' | 'connected' || 'disconnected';
-    } catch {
-      return 'disconnected';
-    }
-  });
-  const [awsResources, setAwsResources] = useState<AWSResourceSummary | null>(() => {
-    try {
-      const saved = localStorage.getItem('zapgap_aws_resources');
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
-  });
+  const [awsConnectionStatus, setAwsConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
+  const [awsResources, setAwsResources] = useState<AWSResourceSummary | null>(null);
   const [awsError, setAwsError] = useState<string | null>(null);
   const [isLoadingResources, setIsLoadingResources] = useState(false);
 
@@ -113,48 +109,31 @@ const Dashboard = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Save AWS connection status to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem('zapgap_aws_connection_status', awsConnectionStatus);
-    } catch (error) {
-      console.warn('Could not save AWS connection status:', error);
-    }
-  }, [awsConnectionStatus]);
-
-  // Save AWS resources to localStorage
-  useEffect(() => {
-    try {
-      if (awsResources) {
-        localStorage.setItem('zapgap_aws_resources', JSON.stringify(awsResources));
-      } else {
-        localStorage.removeItem('zapgap_aws_resources');
-      }
-    } catch (error) {
-      console.warn('Could not save AWS resources:', error);
-    }
-  }, [awsResources]);
-
-  // Restore AWS connection on component mount
+  // Restore AWS connection on component mount from Supabase
   useEffect(() => {
     const restoreAWSConnection = async () => {
       try {
-        const savedCredentials = localStorage.getItem('zapgap_aws_credentials');
-        const savedStatus = localStorage.getItem('zapgap_aws_connection_status');
+        // Check if user has AWS data in Supabase
+        const status = await getAWSDataStatus();
 
-        if (savedStatus === 'connected' && savedCredentials) {
-          const credentials = JSON.parse(savedCredentials);
-          setAwsCredentials(credentials);
+        if (status?.hasAWSData) {
+          // Get credentials from Supabase
+          const credentials = await getAWSCredentials();
 
-          // Reconnect to AWS service
-          await awsService.connect({
-            accessKeyId: credentials.accessKey,
-            secretAccessKey: credentials.secretKey,
-            region: credentials.region,
-          });
+          if (credentials) {
+            setAwsCredentials(credentials);
+            setAwsConnectionStatus('connecting');
 
-          // Fetch fresh resources if we don't have cached ones
-          if (!awsResources) {
+            // Reconnect to AWS service
+            await awsService.connect({
+              accessKeyId: credentials.accessKey,
+              secretAccessKey: credentials.secretKey,
+              region: credentials.region,
+            });
+
+            setAwsConnectionStatus('connected');
+
+            // Fetch fresh resources
             await fetchAWSResources();
           }
         }
@@ -162,15 +141,13 @@ const Dashboard = () => {
         console.warn('Could not restore AWS connection:', error);
         setAwsConnectionStatus('disconnected');
         setAwsResources(null);
-        localStorage.removeItem('zapgap_aws_connection_status');
-        localStorage.removeItem('zapgap_aws_resources');
-        localStorage.removeItem('zapgap_aws_credentials');
+        if (awsDataError) {
+          console.error('AWS Data Error:', awsDataError);
+        }
       }
     };
 
-    if (awsConnectionStatus === 'connected') {
-      restoreAWSConnection();
-    }
+    restoreAWSConnection();
   }, []); // Only run on mount
 
   // API call function to ZapGap Server
@@ -240,6 +217,7 @@ const Dashboard = () => {
     e.preventDefault();
     setAwsConnectionStatus('connecting');
     setAwsError(null);
+    clearAWSDataError();
 
     try {
       // Connect to AWS with real credentials
@@ -249,15 +227,15 @@ const Dashboard = () => {
         region: awsCredentials.region,
       });
 
+      // Save credentials to Supabase for persistence
+      const savedData = await saveAWSData(awsCredentials);
+
+      if (!savedData) {
+        throw new Error(awsDataError || 'Failed to save AWS credentials');
+      }
+
       setAwsConnectionStatus('connected');
       setShowAWSForm(false);
-
-      // Save credentials to localStorage for persistence
-      try {
-        localStorage.setItem('zapgap_aws_credentials', JSON.stringify(awsCredentials));
-      } catch (error) {
-        console.warn('Could not save AWS credentials:', error);
-      }
 
       // Fetch AWS resources after successful connection
       await fetchAWSResources();
@@ -288,19 +266,17 @@ const Dashboard = () => {
     fetchAWSResources();
   };
 
-  const handleDisconnectAWS = () => {
+  const handleDisconnectAWS = async () => {
     awsService.disconnect();
     setAwsConnectionStatus('disconnected');
     setAwsResources(null);
     setAwsCredentials({ accessKey: '', secretKey: '', region: 'us-east-1' });
 
-    // Clear localStorage
+    // Clear AWS data from Supabase
     try {
-      localStorage.removeItem('zapgap_aws_connection_status');
-      localStorage.removeItem('zapgap_aws_resources');
-      localStorage.removeItem('zapgap_aws_credentials');
+      await deleteAWSData();
     } catch (error) {
-      console.warn('Could not clear AWS data from localStorage:', error);
+      console.warn('Could not clear AWS data from database:', error);
     }
   };
 
@@ -814,11 +790,11 @@ const Dashboard = () => {
                   Connect AWS Account
                 </h3>
 
-                {awsError && (
+                {(awsError || awsDataError) && (
                   <div className="p-3 bg-red-900/20 border border-red-500/50 rounded-lg">
                     <div className="flex items-center space-x-2">
                       <AlertCircle className="w-4 h-4 text-red-500" />
-                      <span className="text-red-400 text-sm">{awsError}</span>
+                      <span className="text-red-400 text-sm">{awsError || awsDataError}</span>
                     </div>
                   </div>
                 )}

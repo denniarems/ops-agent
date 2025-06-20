@@ -17,11 +17,9 @@ import {
   Capability
 } from '@aws-sdk/client-cloudformation';
 import { RuntimeContext } from '@mastra/core/runtime-context';
-import { getTemporaryCredentials, getTemporaryCredentialsFromContext } from '../config/sts';
+import { getTemporaryCredentialsFromContext } from '../config/sts';
 import { AWSRuntimeContext } from '../types/aws-runtime-context';
-import {
-  getAWSConfigFromContext
-} from '../utils/aws-runtime-context';
+// AWS runtime context utilities no longer needed - using STS directly
 import {
   handleAWSError,
   validateRuntimeContextSafely
@@ -33,23 +31,6 @@ const AWS_REGION = process.env.AWS_REGION || 'us-east-1';
 const CFN_READONLY = process.env.CFN_MCP_SERVER_READONLY === 'true';
 const CFN_TIMEOUT = parseInt(process.env.CFN_MCP_SERVER_TIMEOUT || '30000');
 const CFN_MAX_RETRIES = parseInt(process.env.CFN_MCP_SERVER_MAX_RETRIES || '3');
-
-// CloudFormation client factory with credential management
-export async function createCloudFormationClient(): Promise<CloudFormationClient> {
-  const credentials = await getTemporaryCredentials();
-  if(!credentials) {
-    throw new Error('Failed to retrieve temporary credentials');
-  }
-  return new CloudFormationClient({
-    region: AWS_REGION,
-    credentials: {
-      accessKeyId: credentials.AWS_ACCESS_KEY_ID!,
-      secretAccessKey: credentials.AWS_SECRET_ACCESS_KEY!,
-      sessionToken: credentials.AWS_SESSION_TOKEN!,
-    },
-    maxAttempts: CFN_MAX_RETRIES,
-  });
-}
 
 // Enhanced CloudFormation client factory with runtime context support
 export async function createCloudFormationClientFromContext(
@@ -69,16 +50,15 @@ export async function createCloudFormationClientFromContext(
 
     // Get credentials with error handling
     const credentials = await getTemporaryCredentialsFromContext(runtimeContext);
-    const config = getAWSConfigFromContext(runtimeContext);
 
     return new CloudFormationClient({
-      region: config.region,
+      region: AWS_REGION,
       credentials: {
         accessKeyId: credentials.accessKeyId,
         secretAccessKey: credentials.secretAccessKey,
         sessionToken: credentials.sessionToken,
       },
-      maxAttempts: config.maxRetries,
+      maxAttempts: CFN_MAX_RETRIES,
     });
   } catch (error) {
     throw handleAWSError(error, 'CloudFormation client creation');
@@ -198,10 +178,12 @@ const createResourceTool = createTool({
     const { resourceType, properties, stackName } = context;
 
     try {
-      // Create CloudFormation client using runtime context if available, fallback to legacy method
-      const cfnClient = runtimeContext
-        ? await createCloudFormationClientFromContext(runtimeContext)
-        : await createCloudFormationClient();
+      // Runtime context is required for all CloudFormation operations
+      if (!runtimeContext) {
+        throw new Error('Runtime context with AWS credentials is required for CloudFormation operations');
+      }
+
+      const cfnClient = await createCloudFormationClientFromContext(runtimeContext);
 
       // Generate stack name if not provided
       const finalStackName = stackName || generateStackName(resourceType);
@@ -289,9 +271,11 @@ const getResourceTool = createTool({
     const { stackId } = context;
 
     try {
-      const cfnClient = runtimeContext
-        ? await createCloudFormationClientFromContext(runtimeContext)
-        : await createCloudFormationClient();
+      if (!runtimeContext) {
+        throw new Error('Runtime context with AWS credentials is required for CloudFormation operations');
+      }
+
+      const cfnClient = await createCloudFormationClientFromContext(runtimeContext);
 
       // Get stack details
       const describeStacksCommand = new DescribeStacksCommand({
@@ -382,9 +366,11 @@ const updateResourceTool = createTool({
     const { stackId, properties } = context;
 
     try {
-      const cfnClient = runtimeContext
-        ? await createCloudFormationClientFromContext(runtimeContext)
-        : await createCloudFormationClient();
+      if (!runtimeContext) {
+        throw new Error('Runtime context with AWS credentials is required for CloudFormation operations');
+      }
+
+      const cfnClient = await createCloudFormationClientFromContext(runtimeContext);
 
       // First, get the current template
       const getTemplateCommand = new GetTemplateCommand({
@@ -487,9 +473,11 @@ const deleteResourceTool = createTool({
     const { stackId, retainResources } = context;
 
     try {
-      const cfnClient = runtimeContext
-        ? await createCloudFormationClientFromContext(runtimeContext)
-        : await createCloudFormationClient();
+      if (!runtimeContext) {
+        throw new Error('Runtime context with AWS credentials is required for CloudFormation operations');
+      }
+
+      const cfnClient = await createCloudFormationClientFromContext(runtimeContext);
 
       // Get stack details before deletion
       const describeStacksCommand = new DescribeStacksCommand({
@@ -559,9 +547,11 @@ const listResourcesTool = createTool({
     const { resourceTypeFilter, stackStatusFilter, maxResults = 100 } = context;
 
     try {
-      const cfnClient = runtimeContext
-        ? await createCloudFormationClientFromContext(runtimeContext)
-        : await createCloudFormationClient();
+      if (!runtimeContext) {
+        throw new Error('Runtime context with AWS credentials is required for CloudFormation operations');
+      }
+
+      const cfnClient = await createCloudFormationClientFromContext(runtimeContext);
 
       // List stacks with optional status filter
       const listStacksCommand = new ListStacksCommand({
@@ -673,9 +663,11 @@ const getRequestStatusTool = createTool({
     const { stackId } = context;
 
     try {
-      const cfnClient = runtimeContext
-        ? await createCloudFormationClientFromContext(runtimeContext)
-        : await createCloudFormationClient();
+      if (!runtimeContext) {
+        throw new Error('Runtime context with AWS credentials is required for CloudFormation operations');
+      }
+
+      const cfnClient = await createCloudFormationClientFromContext(runtimeContext);
 
       // Get stack status
       const describeStacksCommand = new DescribeStacksCommand({
@@ -755,9 +747,11 @@ const createTemplateTool = createTool({
     const { stackId, templateFormat = 'JSON' } = context;
 
     try {
-      const cfnClient = runtimeContext
-        ? await createCloudFormationClientFromContext(runtimeContext)
-        : await createCloudFormationClient();
+      if (!runtimeContext) {
+        throw new Error('Runtime context with AWS credentials is required for CloudFormation operations');
+      }
+
+      const cfnClient = await createCloudFormationClientFromContext(runtimeContext);
 
       // Get the template
       const getTemplateCommand = new GetTemplateCommand({
@@ -839,9 +833,11 @@ const getResourceSchemaInformationTool = createTool({
     const { resourceType, schemaVersion } = context;
 
     try {
-      const cfnClient = runtimeContext
-        ? await createCloudFormationClientFromContext(runtimeContext)
-        : await createCloudFormationClient();
+      if (!runtimeContext) {
+        throw new Error('Runtime context with AWS credentials is required for CloudFormation operations');
+      }
+
+      const cfnClient = await createCloudFormationClientFromContext(runtimeContext);
 
       // Prepare describe type command
       const describeTypeInput: DescribeTypeCommandInput = {

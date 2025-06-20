@@ -11,8 +11,7 @@ import { cfnOperationsWorkflow } from './workflows/cfn-operations';
 import { UpstashStore } from "@mastra/upstash";
 import { AgentNetwork } from '@mastra/core/network';
 import { openrouter } from '@openrouter/ai-sdk-provider';
-import { combinedContextMiddleware } from './middleware/user-context-middleware';
-import { registerApiRoute } from '@mastra/core/server';
+import { awsContextMiddleware } from './middleware/aws-context-middleware';
 
 const upstashStorage = new UpstashStore({
   url: process.env.UPSTASH_REDIS_REST_URL as string,
@@ -130,8 +129,12 @@ export const mastra = new Mastra({
   }),
   server: {
     port: 4111,
+    build: {
+      openAPIDocs: true, // Enable OpenAPI documentation
+      swaggerUI: true, // Enable Swagger UI
+    },
     middleware: [
-      combinedContextMiddleware,
+      awsContextMiddleware,
     ]
   },
 });

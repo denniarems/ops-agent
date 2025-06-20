@@ -4,9 +4,9 @@ import { logger } from 'hono/logger'
 import { ofetch } from 'ofetch'
 import {
   clerkAuthMiddleware,
-  createAuthenticatedMastraHeaders,
   type AuthVariables
 } from './middleware/auth'
+import awsDataRouter from './routes/aws-data'
 
 /**
  * ZapGap REST API Server
@@ -21,6 +21,7 @@ type CloudflareBindings = {
   NODE_ENV: string
   CLERK_SECRET_KEY: string
   CLERK_AUTHORIZED_PARTIES?: string
+  SUPABASE_KEY: string
 }
 
 // Use enhanced authentication variables from middleware and Cloudflare bindings
@@ -101,5 +102,8 @@ app.get('/health', async (c) => {
     }, 503)
   }
 })
+
+// Mount AWS data routes
+app.route('/api/aws-data', awsDataRouter)
 
 export default app

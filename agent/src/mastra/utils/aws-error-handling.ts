@@ -3,12 +3,9 @@ import {
   AWSRuntimeContext,
   AWSCredentials
 } from '../types/aws-runtime-context';
-import { 
+import {
   getAWSCredentialsFromContext,
-  getAWSConfigFromContext,
-  getAWSSecurityConfigFromContext,
-  isValidAWSRuntimeContext,
-  createAWSRuntimeContextFromEnvironment
+  isValidAWSRuntimeContext
 } from './aws-runtime-context';
 
 /**
@@ -49,6 +46,7 @@ export class AWSPermissionError extends Error {
 
 /**
  * Validates AWS credentials with detailed error messages
+ * Simplified for permanent credentials only - sessionToken generated via STS
  */
 export function validateAWSCredentials(credentials: AWSCredentials): void {
   if (!credentials) {
@@ -63,10 +61,10 @@ export function validateAWSCredentials(credentials: AWSCredentials): void {
     throw new AWSCredentialsError('AWS Secret Access Key is required but missing');
   }
 
-  // Validate access key format (should start with AKIA for long-term, ASIA for temporary)
-  if (!credentials.accessKeyId.match(/^(AKIA|ASIA)[A-Z0-9]{16}$/)) {
+  // Validate access key format (should start with AKIA for long-term credentials)
+  if (!credentials.accessKeyId.match(/^AKIA[A-Z0-9]{16}$/)) {
     throw new AWSCredentialsError(
-      `Invalid AWS Access Key ID format. Expected format: AKIA... or ASIA... followed by 16 alphanumeric characters. Got: ${credentials.accessKeyId.substring(0, 8)}...`
+      `Invalid AWS Access Key ID format. Expected format: AKIA... followed by 16 alphanumeric characters. Got: ${credentials.accessKeyId.substring(0, 8)}...`
     );
   }
 
@@ -77,26 +75,15 @@ export function validateAWSCredentials(credentials: AWSCredentials): void {
     );
   }
 
-  // If session token is provided, validate it's not empty
-  if (credentials.sessionToken !== undefined && credentials.sessionToken.length === 0) {
-    throw new AWSCredentialsError('AWS Session Token provided but is empty');
-  }
-
-  // Check for temporary credentials consistency
-  const isTemporary = credentials.accessKeyId.startsWith('ASIA');
-  if (isTemporary && !credentials.sessionToken) {
-    throw new AWSCredentialsError(
-      'Temporary credentials (ASIA...) require a session token, but none was provided'
-    );
-  }
-
-  if (!isTemporary && credentials.sessionToken) {
-    console.warn('Session token provided with long-term credentials (AKIA...). This is unusual but not necessarily an error.');
+  // Warn if temporary credentials are provided (should use permanent credentials)
+  if (credentials.accessKeyId.startsWith('ASIA')) {
+    console.warn('Temporary credentials (ASIA...) detected. Consider using permanent credentials (AKIA...) in runtime context and generate temporary credentials via STS when needed.');
   }
 }
 
 /**
- * Validates runtime context with comprehensive error checking
+ * Validates runtime context with simplified credential checking
+ * Only validates AWS credentials - no config or security validation
  */
 export function validateRuntimeContextSafely(
   runtimeContext: RuntimeContext<AWSRuntimeContext> | undefined
@@ -121,33 +108,9 @@ export function validateRuntimeContextSafely(
       };
     }
 
-    // Validate credentials
+    // Validate credentials only
     const credentials = getAWSCredentialsFromContext(runtimeContext);
     validateAWSCredentials(credentials);
-
-    // Validate configuration
-    const config = getAWSConfigFromContext(runtimeContext);
-    if (!config.region) {
-      warnings.push('AWS region not specified, using default');
-    }
-
-    if (config.maxRetries < 0 || config.maxRetries > 10) {
-      warnings.push(`Max retries (${config.maxRetries}) is outside recommended range (0-10)`);
-    }
-
-    if (config.timeout < 1000 || config.timeout > 300000) {
-      warnings.push(`Timeout (${config.timeout}ms) is outside recommended range (1000-300000ms)`);
-    }
-
-    // Validate security configuration
-    const security = getAWSSecurityConfigFromContext(runtimeContext);
-    if (!security.tenantId) {
-      warnings.push('Tenant ID not specified, using default');
-    }
-
-    if (security.maxResourcesPerTenant > 1000) {
-      warnings.push(`Max resources per tenant (${security.maxResourcesPerTenant}) is very high`);
-    }
 
     return { isValid: true, warnings };
 
@@ -156,55 +119,6 @@ export function validateRuntimeContextSafely(
       isValid: false,
       error: error instanceof Error ? error : new Error(String(error)),
       warnings
-    };
-  }
-}
-
-/**
- * Safe credential extraction with fallback mechanisms
- */
-export function safeGetAWSCredentials(
-  runtimeContext?: RuntimeContext<AWSRuntimeContext>
-): { credentials?: AWSCredentials; error?: Error; usedFallback: boolean } {
-  try {
-    if (runtimeContext) {
-      const validation = validateRuntimeContextSafely(runtimeContext);
-      if (validation.isValid) {
-        return {
-          credentials: getAWSCredentialsFromContext(runtimeContext),
-          usedFallback: false
-        };
-      } else {
-        console.warn('Runtime context validation failed, attempting fallback:', validation.error?.message);
-      }
-    }
-
-    // Fallback to environment variables
-    try {
-      const fallbackContext = createAWSRuntimeContextFromEnvironment();
-      const fallbackCredentials = getAWSCredentialsFromContext(fallbackContext);
-      
-      // Validate fallback credentials
-      validateAWSCredentials(fallbackCredentials);
-      
-      console.info('Using fallback credentials from environment variables');
-      return {
-        credentials: fallbackCredentials,
-        usedFallback: true
-      };
-    } catch (fallbackError) {
-      return {
-        error: new AWSCredentialsError(
-          `Failed to get credentials from runtime context and environment fallback: ${fallbackError instanceof Error ? fallbackError.message : fallbackError}`
-        ),
-        usedFallback: true
-      };
-    }
-
-  } catch (error) {
-    return {
-      error: error instanceof Error ? error : new Error(String(error)),
-      usedFallback: false
     };
   }
 }
@@ -325,42 +239,6 @@ export async function retryAWSOperation<T>(
   }
 
   throw lastError!;
-}
-
-/**
- * Development environment fallback for missing credentials
- */
-export function createDevelopmentFallback(): RuntimeContext<AWSRuntimeContext> {
-  console.warn('Creating development fallback credentials. DO NOT USE IN PRODUCTION!');
-  
-  const mockCredentials: AWSCredentials = {
-    accessKeyId: 'AKIAIOSFODNN7EXAMPLE',
-    secretAccessKey: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
-    sessionToken: 'development-session-token'
-  };
-
-  const mockContext: AWSRuntimeContext = {
-    'aws-credentials': mockCredentials,
-    'aws-config': {
-      region: 'us-east-1',
-      maxRetries: 3,
-      timeout: 30000
-    },
-    'aws-security': {
-      tenantId: 'development',
-      environment: 'development',
-      resourceTagPrefix: 'dev',
-      maxResourcesPerTenant: 10,
-      requiredTags: ['environment', 'tenant']
-    }
-  };
-
-  const runtimeContext = new RuntimeContext<AWSRuntimeContext>();
-  runtimeContext.set('aws-credentials', mockContext['aws-credentials']);
-  runtimeContext.set('aws-config', mockContext['aws-config']);
-  runtimeContext.set('aws-security', mockContext['aws-security']);
-
-  return runtimeContext;
 }
 
 /**
