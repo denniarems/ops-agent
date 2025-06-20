@@ -126,7 +126,7 @@ streamingRouter.post('/', async (c) => {
     const baseRuntimeContext = buildRuntimeContext(runtimeContext)
     
     // Build AWS headers with credentials
-    const awsHeaders = await buildAWSHeaders(runtimeContext, Bun.env.SUPABASE_KEY)
+    const awsHeaders = await buildAWSHeaders(runtimeContext, Bun.env.SUPABASE_KEY as string)
     
     // Prepare request payload for Mastra agent
     const requestPayload = {

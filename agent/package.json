@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "bun --env-file=.env mastra dev",
-    "build": "mastra build",
-    "start": "bun --env-file=.env mastra start"
+    "dev": "bun mastra dev",
+    "build": "bunx mastra build",
+    "start": "bunx mastra start"
   },
   "keywords": [],
   "author": "",
@@ -20,7 +20,6 @@
     "@aws-sdk/client-cloudformation": "^3.830.0",
     "@aws-sdk/client-sts": "^3.830.0",
     "@mastra/core": "^0.10.5",
-    "@mastra/libsql": "^0.10.2",
     "@mastra/loggers": "^0.10.2",
     "@mastra/mcp": "^0.10.4",
     "@mastra/memory": "^0.10.3",
