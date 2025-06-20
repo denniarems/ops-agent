@@ -7,6 +7,7 @@ import {
   type AuthVariables
 } from './middleware/auth'
 import awsDataRouter from './routes/aws-data'
+import streamingRouter from './routes/streaming'
 
 /**
  * ZapGap REST API Server
@@ -36,7 +37,16 @@ const app = new Hono<{
 app.use('*', cors({
   origin: '*',
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization', 'X-User-ID', 'X-User-Tier', 'X-Language'],
+  allowHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-User-ID',
+    'X-User-Tier',
+    'X-Language',
+    'X-AWS-Access-Key-ID',
+    'X-AWS-Secret-Access-Key',
+    'X-AWS-Region'
+  ],
   credentials: false,
 }))
 
@@ -105,5 +115,8 @@ app.get('/health', async (c) => {
 
 // Mount AWS data routes
 app.route('/api/aws-data', awsDataRouter)
+
+// Mount streaming routes
+app.route('/api/streaming', streamingRouter)
 
 export default app
