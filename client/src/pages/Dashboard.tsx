@@ -16,6 +16,7 @@ import { LoadingQuotes } from "@/components/LoadingQuotes";
 import { SignedIn, UserButton } from "@clerk/clerk-react";
 import { awsService, AWSResourceSummary } from "@/services/awsService";
 import AWSResourcesDisplay from "@/components/AWSResourcesDisplay";
+import useAuthenticatedFetch from "@/hooks/useAuthenticatedFetch";
 
 interface Message {
   id: string;
@@ -34,49 +35,20 @@ interface CloudProvider {
   color: string;
 }
 
-// ZapGap Chat API Configuration
-const ZAPGAP_API = {
-  endpoint: 'https://zapgap-api.deno.dev/chat',
-};
+// ZapGap Server API Configuration
+const ZAPGAP_SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:8787';
 
-// Generate unique session ID for each dashboard session
-const generateSessionId = () => `dashboard_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
-
-const SESSION_STORAGE_KEY = 'zapgap_dashboard_session_id';
-
-const getOrCreateSessionId = (): string => {
-  try {
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      const existingSessionId = sessionStorage.getItem(SESSION_STORAGE_KEY);
-      if (existingSessionId) {
-        return existingSessionId;
-      }
-    }
-  } catch (error) {
-    console.warn('SessionStorage not available:', error);
-  }
-
-  const newSessionId = generateSessionId();
-  try {
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      sessionStorage.setItem(SESSION_STORAGE_KEY, newSessionId);
-    }
-  } catch (error) {
-    console.warn('Could not store session ID:', error);
-  }
-
-  return newSessionId;
-};
+// Session management is now handled by Clerk authentication
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("connections");
+  const { authenticatedFetch } = useAuthenticatedFetch();
 
   // Chat state
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [sessionId, setSessionId] = useState(() => getOrCreateSessionId());
 
   // AWS state
   const [showAWSForm, setShowAWSForm] = useState(false);
@@ -201,26 +173,15 @@ const Dashboard = () => {
     }
   }, []); // Only run on mount
 
-  // API call function to ZapGap Chat API
+  // API call function to ZapGap Server
   const callZapGapAPI = async (userMessage: string): Promise<string> => {
     try {
-      const url = new URL(ZAPGAP_API.endpoint);
-      url.searchParams.set('chatId', sessionId);
-
-      const response = await fetch(url.toString(), {
+      const response = await authenticatedFetch(`${ZAPGAP_SERVER_URL}/api/chat`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ msg: userMessage }),
+        body: { message: userMessage, agentName: 'coreAgent' },
       });
 
-      if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data.message || "I'm having trouble processing your request right now. Please try again.";
+      return response.message || response.response || "I'm having trouble processing your request right now. Please try again.";
     } catch (error) {
       console.error('ZapGap API call failed:', error);
       throw error;
@@ -253,6 +214,7 @@ const Dashboard = () => {
       };
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
+      console.error('Chat API error:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: "I'm experiencing some technical difficulties right now. Please try again in a moment.",
@@ -268,15 +230,6 @@ const Dashboard = () => {
 
   const handleClearChat = () => {
     setMessages([]);
-    const newSessionId = generateSessionId();
-    setSessionId(newSessionId);
-    try {
-      if (typeof window !== 'undefined' && window.sessionStorage) {
-        sessionStorage.setItem(SESSION_STORAGE_KEY, newSessionId);
-      }
-    } catch (error) {
-      console.warn('Could not store new session ID:', error);
-    }
   };
 
   const handleConnectAWS = () => {

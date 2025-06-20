@@ -11,13 +11,8 @@ import {
   Cpu, Network, ChevronRight, CheckCircle, AlertCircle,
   MessageSquare, Workflow, UserPlus, Link as LinkIcon, LineChart, ChevronDown
 } from "lucide-react";
-import {
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  SignUpButton,
-  UserButton,
-} from "@clerk/clerk-react";
+import { SignedIn } from "@clerk/clerk-react";
+import AuthButton from "@/components/auth/AuthButton";
 import PlatformSection from "@/components/PlatformSection";
 import UseCasesTable from "@/components/UseCasesTable";
 import PersonaFeatures from "@/components/PersonaFeatures";
@@ -267,36 +262,7 @@ const Index = () => {
 
             {/* Authentication Section */}
             <div className="flex items-center space-x-4">
-              <SignedOut>
-                <div className="flex items-center space-x-2">
-                  <SignInButton mode="modal">
-                    <Button
-                      variant="ghost"
-                      className="text-gray-300 hover:text-white hover:bg-white/10 rounded-full px-6 py-2 transition-all duration-300"
-                      style={{ fontFamily: '"Space Grotesk", sans-serif' }}
-                    >
-                      Sign In
-                    </Button>
-                  </SignInButton>
-                  <SignUpButton mode="modal">
-                    <Button
-                      className="bg-gradient-to-r from-[#3ABCF7] to-[#8B2FF8] text-white rounded-full px-6 py-2 font-medium hover:shadow-lg hover:shadow-[#3ABCF7]/25 transition-all duration-300"
-                      style={{ fontFamily: '"Space Grotesk", sans-serif' }}
-                    >
-                      Sign Up
-                    </Button>
-                  </SignUpButton>
-                </div>
-              </SignedOut>
-              <SignedIn>
-                <UserButton
-                  appearance={{
-                    elements: {
-                      avatarBox: "w-10 h-10 rounded-full border-2 border-gradient-to-r from-[#3ABCF7] to-[#8B2FF8]"
-                    }
-                  }}
-                />
-              </SignedIn>
+              <AuthButton variant="header" />
             </div>
 
           </div>

@@ -9,11 +9,12 @@
     "cf-typegen": "wrangler types --env-interface CloudflareBindings"
   },
   "dependencies": {
+    "@clerk/backend": "^2.1.0",
+    "agent": "workspace:*",
     "hono": "^4.7.11",
     "ofetch": "^1.4.1",
-    "zod": "^3.25.62",
     "shared": "workspace:*",
-    "agent": "workspace:*"
+    "zod": "^3.25.62"
   },
   "devDependencies": {
     "wrangler": "^4.4.0",
