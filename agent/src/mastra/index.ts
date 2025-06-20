@@ -132,47 +132,6 @@ export const mastra = new Mastra({
     port: 4111,
     middleware: [
       combinedContextMiddleware,
-    ],
-    apiRoutes: [
-      registerApiRoute('/chat', {
-        method: 'POST',
-        handler: async (c) => {
-          try {
-            const { message, agentName = 'coreAgent' } = await c.req.json();
-
-            // Get the agent
-            const agent = mastra.getAgent(agentName);
-            if (!agent) {
-              return c.json({ error: `Agent ${agentName} not found` }, 404);
-            }
-
-            // Generate response using the agent with runtime context
-            const response = await agent.generate(message);
-
-            return c.json({
-              response: response.text,
-              agentUsed: agentName,
-              timestamp: new Date().toISOString()
-            });
-          } catch (error) {
-            console.error('Chat API error:', error);
-            return c.json({
-              error: 'Failed to process chat request',
-              details: error instanceof Error ? error.message : 'Unknown error'
-            }, 500);
-          }
-        },
-      }),
-      registerApiRoute('/agents', {
-        method: 'GET',
-        handler: async (c) => {
-          const agents = mastra.getAgents();
-          return c.json({
-            agents: Object.keys(agents),
-            count: Object.keys(agents).length
-          });
-        },
-      }),
-    ],
+    ]
   },
 });
