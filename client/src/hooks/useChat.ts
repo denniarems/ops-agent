@@ -11,7 +11,7 @@ import {
   cleanupStaleConversations
 } from '@/utils/conversationManager';
 
-const ZAPGAP_SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:8787';
+const ZAPGAP_SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000';
 
 // Agent API configuration (dynamic agent name)
 const getAgentConfig = (agentName: AgentType) => ({

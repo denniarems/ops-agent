@@ -115,7 +115,7 @@ streamingRouter.post('/', async (c) => {
     const validatedData = streamingRequestSchema.parse(body)
     
     // Get Mastra agent URL from environment
-    const baseUrl = c.env.MASTRA_AGENT_URL || 'http://localhost:4111'
+    const baseUrl = process.env.MASTRA_AGENT_URL || 'http://localhost:4111'
     
     // Use client-provided threadId and generate other IDs if not provided
     const threadId = validatedData.threadId // Required by schema validation
@@ -126,7 +126,7 @@ streamingRouter.post('/', async (c) => {
     const baseRuntimeContext = buildRuntimeContext(runtimeContext)
     
     // Build AWS headers with credentials
-    const awsHeaders = await buildAWSHeaders(runtimeContext, c.env.SUPABASE_KEY)
+    const awsHeaders = await buildAWSHeaders(runtimeContext, process.env.SUPABASE_KEY)
     
     // Prepare request payload for Mastra agent
     const requestPayload = {
@@ -143,10 +143,6 @@ streamingRouter.post('/', async (c) => {
     
     // Construct the generate endpoint URL
     const chatUrl = `${baseUrl}/api/agents/${validatedData.agentName}/generate`
-    
-    console.log(`Sending request to Mastra agent: ${chatUrl}`)
-    console.log('Request payload:', JSON.stringify(requestPayload, null, 2))
-    console.log('AWS headers:', Object.keys(awsHeaders).filter(k => k.startsWith('X-AWS')))
     
     // Make standard JSON request to Mastra agent with AWS credentials in headers
     const response = await ofetch(chatUrl, {
@@ -193,7 +189,7 @@ streamingRouter.post('/', async (c) => {
  */
 streamingRouter.get('/health', async (c) => {
   try {
-    const baseUrl = c.env.MASTRA_AGENT_URL || 'http://localhost:4111'
+    const baseUrl = process.env.MASTRA_AGENT_URL || 'http://localhost:4111'
 
     // Test Mastra agent server connection
     const healthCheck = await ofetch(`${baseUrl}/health`, {

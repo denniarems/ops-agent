@@ -89,8 +89,8 @@ export const clerkAuthMiddleware = async (c: Context<{ Variables: AuthVariables;
 
     // Create Clerk client using environment bindings
     const clerkClient = createClerkClient({
-      secretKey: c.env.CLERK_SECRET_KEY,
-      publishableKey: c.env.CLERK_PUBLISHABLE_KEY,
+      secretKey: process.env.CLERK_SECRET_KEY,
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
     })
 
     // Extract JWT token from Authorization header
@@ -135,7 +135,7 @@ export const clerkAuthMiddleware = async (c: Context<{ Variables: AuthVariables;
 
     // Authenticate request with Clerk
     const requestState = await clerkClient.authenticateRequest(request, {
-      authorizedParties: [c.env.CLERK_AUTHORIZED_PARTIES || 'http://localhost:8080'],
+      authorizedParties: [process.env.CLERK_AUTHORIZED_PARTIES || 'http://localhost:8080'],
     })
 
     const auth = requestState.toAuth()
