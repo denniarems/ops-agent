@@ -17,5 +17,6 @@ export {
   RenderIcon,
   GitHubIcon,
   GitLabIcon,
-  BitbucketIcon
+  BitbucketIcon,
+  DockerHubIcon
 } from './CloudProviderIcons';

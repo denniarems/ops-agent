@@ -13,7 +13,8 @@ import {
 import {
   GCPIcon, AzureIcon, DigitalOceanIcon, LinodeIcon, VultrIcon, OCIIcon,
   HerokuIcon, RailwayIcon, FlyIcon, CloudflareIcon, VercelIcon, NetlifyIcon,
-  SupabaseIcon, PlanetScaleIcon, RenderIcon, GitHubIcon, GitLabIcon, BitbucketIcon
+  SupabaseIcon, PlanetScaleIcon, RenderIcon, GitHubIcon, GitLabIcon, BitbucketIcon,
+  DockerHubIcon
 } from "@/components/icons";
 import { SignedIn, UserButton } from "@clerk/clerk-react";
 
@@ -308,6 +309,20 @@ const Dashboard = React.memo(() => {
         priority: 'medium' as const,
         estimatedRelease: 'Q3 2024',
         features: ['Git Repositories', 'Pipelines', 'Pull Requests', 'Jira Integration', 'Deployments']
+      },
+
+      // DevOps & Container Providers
+      {
+        id: 'dockerhub',
+        name: 'Docker Hub',
+        icon: DockerHubIcon,
+        status: 'coming-soon',
+        description: 'World\'s largest container registry for sharing and managing Docker images',
+        color: 'from-blue-500 to-cyan-600',
+        category: 'platform' as const,
+        priority: 'high' as const,
+        estimatedRelease: 'Q2 2024',
+        features: ['Container Registry', 'Automated Builds', 'Webhooks', 'Organizations', 'Teams']
       }
     ];
   }, [cloudConnections]);

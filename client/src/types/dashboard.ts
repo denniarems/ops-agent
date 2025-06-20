@@ -1,5 +1,15 @@
 import { ComponentType } from 'react';
 
+// Import connected services types
+export type {
+  ConnectedService,
+  ServiceConnectionStatus,
+  ServiceCategory,
+  ServiceHealthStatus,
+  ServiceMetric,
+  ServiceSummary
+} from '@/data/mockConnectedServicesData';
+
 // Message interface for chat functionality
 export interface Message {
   id: string;
@@ -77,6 +87,11 @@ export interface ConnectedServicesProps {
   isLoadingResources: boolean;
   onRefreshResources: () => void;
   onNavigateToConnections: () => void;
+  // New props for connected services
+  connectedServices?: ConnectedService[];
+  serviceSummary?: ServiceSummary;
+  isLoadingServices?: boolean;
+  onRefreshServices?: () => void;
 }
 
 export interface AnalyticsProps {
