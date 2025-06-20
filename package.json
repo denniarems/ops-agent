@@ -17,7 +17,7 @@
     "build:client": "cd client && bun run build",
     "build:server": "cd server && bun run build",
     "build:agent": "cd agent && bun run build",
-    "start:agent": "cd agent && bun run start",
+    "start": "cd agent && bun run start",
     "build": "./build.sh"
   },
   "keywords": [
