@@ -5,12 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
-import { 
-  Zap, Shield, Cog, Cloud, Users, Target, Gauge, Lock, 
-  Github, Linkedin, Twitter, MessageCircle, Sparkles, Brain, 
+import {
+  Zap, Shield, Cog, Cloud, Users, Target, Gauge, Lock,
+  Github, Linkedin, Twitter, MessageCircle, Sparkles, Brain,
   Cpu, Network, ChevronRight, CheckCircle, AlertCircle,
   MessageSquare, Workflow, UserPlus, Link as LinkIcon, LineChart, ChevronDown
 } from "lucide-react";
+import { SignedIn } from "@clerk/clerk-react";
+import AuthButton from "@/components/auth/AuthButton";
 import PlatformSection from "@/components/PlatformSection";
 import UseCasesTable from "@/components/UseCasesTable";
 import PersonaFeatures from "@/components/PersonaFeatures";
@@ -234,9 +236,9 @@ const Index = () => {
                 { name: 'Features', href: '#features' },
                 { name: 'Use Cases', href: '#use-cases' }
               ].map((item) => (
-                <a 
+                <a
                   key={item.name}
-                  href={item.href} 
+                  href={item.href}
                   className="relative px-4 py-2 text-gray-300 hover:text-white group overflow-hidden rounded-full transition-all duration-300"
                   style={{ fontFamily: '"Space Grotesk", sans-serif', letterSpacing: '0.01em' }}
                 >
@@ -244,7 +246,24 @@ const Index = () => {
                   <span className="relative font-medium">{item.name}</span>
                 </a>
               ))}
+
+              {/* Dashboard Link for Authenticated Users */}
+              <SignedIn>
+                <a
+                  href="/dashboard"
+                  className="relative px-4 py-2 text-gray-300 hover:text-white group overflow-hidden rounded-full transition-all duration-300"
+                  style={{ fontFamily: '"Space Grotesk", sans-serif', letterSpacing: '0.01em' }}
+                >
+                  <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-[#3ABCF7]/20 to-[#8B2FF8]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full"></span>
+                  <span className="relative font-medium">Dashboard</span>
+                </a>
+              </SignedIn>
             </nav>
+
+            {/* Authentication Section */}
+            <div className="flex items-center space-x-4">
+              <AuthButton variant="header" />
+            </div>
 
           </div>
         </div>

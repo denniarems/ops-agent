@@ -7,6 +7,15 @@
         "@mastra/mcp-docs-server"
       ],
       "type": "stdio"
+    },
+    "aws-core-mcp-server": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "mcp/aws-core-mcp-server"
+      ]
     }
   }
 }

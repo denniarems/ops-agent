@@ -1,0 +1,99 @@
+# Multi-stage build for optimized ZapGap AI agent with Python and uvx support
+# Stage 1: Extract Python and uvx from official Python image
+FROM python:3.12-alpine AS python-source
+
+# Install uvx in the Python source stage
+RUN pip install --no-cache-dir uv
+
+# Stage 2: Minimal Alpine Linux base with Node.js
+FROM alpine:latest AS base
+
+# Set environment variables for non-interactive installation
+ENV NODE_ENV=production
+ENV BUN_INSTALL=/usr/local
+
+# Install essential system packages and Node.js
+RUN apk add --no-cache \
+    # Core system utilities
+    curl \
+    wget \
+    unzip \
+    ca-certificates \
+    bash \
+    # Security and networking
+    openssl \
+    # Build tools (minimal set for native modules)
+    build-base \
+    # Process management and monitoring
+    procps \
+    htop \
+    # Git for potential repository operations
+    git \
+    # Node.js 20.x (LTS) for compatibility
+    nodejs \
+    npm \
+    && rm -rf /var/cache/apk/*
+
+# Stage 3: Runtime with Python and uvx binaries and Bun
+FROM base AS runtime
+
+# Copy Python and uvx from official Python image
+COPY --from=python-source /usr/local/bin/python3 /usr/local/bin/python3
+COPY --from=python-source /usr/local/bin/pip3 /usr/local/bin/pip3
+COPY --from=python-source /usr/local/bin/uv /usr/local/bin/uv
+COPY --from=python-source /usr/local/bin/uvx /usr/local/bin/uvx
+COPY --from=python-source /usr/local/lib/python3.12 /usr/local/lib/python3.12
+
+# Create symlinks for convenience
+RUN ln -sf /usr/local/bin/python3 /usr/local/bin/python \
+    && ln -sf /usr/local/bin/pip3 /usr/local/bin/pip
+
+# Install Bun runtime directly
+RUN curl -fsSL https://bun.sh/install | bash \
+    && bun --version
+
+# Create non-root user for security (multi-tenant requirement)
+RUN addgroup -g 1000 zapgap && adduser -D -u 1000 -G zapgap zapgap \
+    && mkdir -p /app \
+    && chown -R zapgap:zapgap /app
+
+# Set working directory
+WORKDIR /app
+
+# Stage 4: Dependencies installation (optimized layer caching)
+FROM runtime AS dependencies
+
+# Copy package files for dependency installation (layer caching optimization)
+COPY --chown=zapgap:zapgap package.json bun.lock* ./
+
+# Switch to non-root user for dependency installation
+USER zapgap
+
+# Install dependencies with frozen lockfile for reproducible builds
+RUN bun install --frozen-lockfile \
+    && bun pm cache clean
+
+# Stage 5: Application build and final image
+FROM dependencies AS application
+
+# Copy source code
+COPY --chown=zapgap:zapgap . ./
+
+# Build the application
+RUN bun run build
+
+# Health check for container orchestration
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:4111/health || exit 1
+
+# Expose port for ZapGap agent services
+EXPOSE 4111
+
+# Set proper signal handling for graceful shutdown
+STOPSIGNAL SIGTERM
+
+# Run as non-root user for security
+USER zapgap
+
+# Start the application
+CMD ["bun", "run", "start"]

@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  zapgap-agent:
+    image: zapgapapp:latest
+    container_name: zapgap-agent
+    env_file:
+      - .env
+    ports:
+      - "4111:4111"
+    restart: unless-stopped

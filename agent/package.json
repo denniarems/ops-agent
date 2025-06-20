@@ -4,10 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "mastra dev",
-    "build": "mastra build",
-    "start": "mastra start"
+    "dev": "bun mastra dev",
+    "build": "bunx mastra build",
+    "start": "bunx mastra start"
   },
   "keywords": [],
   "author": "",
@@ -18,15 +17,24 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.12",
+    "@aws-sdk/client-cloudformation": "^3.830.0",
+    "@aws-sdk/client-sts": "^3.830.0",
     "@mastra/core": "^0.10.5",
-    "@mastra/libsql": "^0.10.2",
     "@mastra/loggers": "^0.10.2",
+    "@mastra/mcp": "^0.10.4",
     "@mastra/memory": "^0.10.3",
-    "shared": "workspace:*",
+    "@mastra/upstash": "^0.11.0",
+    "@openrouter/ai-sdk-provider": "^0.7.2",
+    "cheerio": "^1.1.0",
+    "ofetch": "^1.4.1",
+    "uuid": "^11.1.0",
     "zod": "^3.25.62"
   },
   "devDependencies": {
+    "@types/bun": "^1.2.16",
+    "@types/cheerio": "^1.0.0",
     "@types/node": "^24.0.1",
+    "@types/uuid": "^10.0.0",
     "mastra": "^0.10.5",
     "typescript": "^5.8.3"
   }
