@@ -50,16 +50,28 @@ export type AuthVariables = {
  * Extract JWT token from Authorization header
  */
 function extractJWTToken(authHeader: string | undefined): string | null {
-  if (!authHeader) return null
-  
+  console.log('[TOKEN-EXTRACT] Processing authorization header:', {
+    hasHeader: !!authHeader,
+    headerLength: authHeader?.length || 0,
+    headerPrefix: authHeader?.substring(0, 20) + '...' || 'none'
+  })
+
+  if (!authHeader) {
+    console.log('[TOKEN-EXTRACT] No authorization header provided')
+    return null
+  }
+
   // Support both "Bearer <token>" and just "<token>" formats
   const bearerMatch = authHeader.match(/^Bearer\s+(.+)$/i)
   if (bearerMatch && bearerMatch[1]) {
+    console.log('[TOKEN-EXTRACT] Bearer token found, length:', bearerMatch[1].length)
     return bearerMatch[1]
   }
-  
+
   // If no "Bearer" prefix, assume the entire header is the token
-  return authHeader.trim() || null
+  const trimmedToken = authHeader.trim()
+  console.log('[TOKEN-EXTRACT] No Bearer prefix, using raw header as token, length:', trimmedToken.length)
+  return trimmedToken || null
 }
 
 /**
@@ -85,20 +97,37 @@ function determineUserTier(clerkUser: any): 'free' | 'pro' | 'enterprise' {
  * backward compatibility with anonymous access patterns
  */
 export const clerkAuthMiddleware = async (c: Context<{ Variables: AuthVariables; Bindings: CloudflareBindings }>, next: Next) => {
+  const requestId = Math.random().toString(36).substring(7)
+  console.log(`[AUTH-${requestId}] Starting authentication for ${c.req.method} ${c.req.url}`)
+
   try {
+    // Log environment variables (without exposing secrets)
+    console.log(`[AUTH-${requestId}] Environment check:`, {
+      hasClerkSecretKey: !!Bun.env.CLERK_SECRET_KEY,
+      hasClerkPublishableKey: !!Bun.env.CLERK_PUBLISHABLE_KEY,
+      clerkSecretKeyPrefix: Bun.env.CLERK_SECRET_KEY?.substring(0, 8) + '...',
+      clerkPublishableKeyPrefix: Bun.env.CLERK_PUBLISHABLE_KEY?.substring(0, 8) + '...',
+      authorizedParties: Bun.env.CLERK_AUTHORIZED_PARTIES || 'http://localhost:8080'
+    })
 
     // Create Clerk client using environment bindings
     const clerkClient = createClerkClient({
       secretKey: Bun.env.CLERK_SECRET_KEY,
       publishableKey: Bun.env.CLERK_PUBLISHABLE_KEY,
     })
+    console.log(`[AUTH-${requestId}] Clerk client created successfully`)
 
     // Extract JWT token from Authorization header
     const authHeader = c.req.header('Authorization')
+    console.log(`[AUTH-${requestId}] Authorization header present:`, !!authHeader)
+    console.log(`[AUTH-${requestId}] Authorization header format:`, authHeader?.substring(0, 20) + '...')
+
     const token = extractJWTToken(authHeader)
+    console.log(`[AUTH-${requestId}] Token extraction result:`, !!token)
 
     if (!token) {
       // No token provided - set anonymous context
+      console.log(`[AUTH-${requestId}] No token provided, setting anonymous context`)
       const language = c.req.header('X-Language') ||
                       c.req.header('x-language') ||
                       c.req.header('Accept-Language')?.split(',')[0] || 'en'
@@ -111,16 +140,22 @@ export const clerkAuthMiddleware = async (c: Context<{ Variables: AuthVariables;
       }
 
       c.set('runtimeContext', unauthenticatedContext)
-      console.log('Anonymous access - no authentication token provided')
+      console.log(`[AUTH-${requestId}] Anonymous access - no authentication token provided`)
       await next()
       return
     }
 
-    console.log('Token extracted:', token.substring(0, 20) + '...')
+    console.log(`[AUTH-${requestId}] Token extracted:`, token.substring(0, 20) + '...')
+    console.log(`[AUTH-${requestId}] Token length:`, token.length)
 
     // Create a proper request object for Clerk's authenticateRequest
-    console.log('Creating request with URL:', c.req.url)
-    console.log('Authorization header will be:', `Bearer ${token.substring(0, 20)}...`)
+    console.log(`[AUTH-${requestId}] Creating request with URL:`, c.req.url)
+    console.log(`[AUTH-${requestId}] Request method:`, c.req.method)
+    console.log(`[AUTH-${requestId}] Request headers:`, {
+      userAgent: c.req.header('user-agent'),
+      host: c.req.header('host'),
+      authorizationPrefix: `Bearer ${token.substring(0, 20)}...`
+    })
 
     const request = new Request(c.req.url, {
       method: c.req.method,
@@ -131,39 +166,73 @@ export const clerkAuthMiddleware = async (c: Context<{ Variables: AuthVariables;
       }
     })
 
-    console.log('Request created, calling Clerk authenticateRequest...')
+    console.log(`[AUTH-${requestId}] Request created, calling Clerk authenticateRequest...`)
 
     // Authenticate request with Clerk
     const requestState = await clerkClient.authenticateRequest(request, {
       authorizedParties: [Bun.env.CLERK_AUTHORIZED_PARTIES || 'http://localhost:8080'],
     })
+    console.log(`[AUTH-${requestId}] Clerk authenticateRequest completed`)
 
     const auth = requestState.toAuth()
+    console.log(`[AUTH-${requestId}] Auth object created:`, {
+      hasAuth: !!auth,
+      hasUserId: !!auth?.userId,
+      userId: auth?.userId?.substring(0, 8) + '...' || 'none',
+      sessionId: auth?.sessionId?.substring(0, 8) + '...' || 'none'
+    })
 
     if (!auth || !auth.userId) {
+      console.log(`[AUTH-${requestId}] Authentication failed - no auth or userId`)
+      console.log(`[AUTH-${requestId}] Auth details:`, {
+        auth: !!auth,
+        userId: auth?.userId,
+        sessionId: auth?.sessionId,
+        orgId: auth?.orgId
+      })
       throw new Error('Invalid or expired token')
     }
 
+    console.log(`[AUTH-${requestId}] Authentication successful, fetching user details...`)
+
     // Get user details from Clerk
     const clerkUser = await clerkClient.users.getUser(auth.userId)
-    
+    console.log(`[AUTH-${requestId}] User details fetched:`, {
+      hasUser: !!clerkUser,
+      userId: clerkUser?.id?.substring(0, 8) + '...' || 'none',
+      emailCount: clerkUser?.emailAddresses?.length || 0,
+      hasFirstName: !!clerkUser?.firstName,
+      hasLastName: !!clerkUser?.lastName,
+      hasUsername: !!clerkUser?.username
+    })
+
     if (!clerkUser) {
+      console.log(`[AUTH-${requestId}] User not found in Clerk database`)
       throw new Error('User not found')
     }
 
     // Extract user information
     const userEmail = clerkUser.emailAddresses?.[0]?.emailAddress
-    const userName = clerkUser.firstName && clerkUser.lastName 
+    const userName = clerkUser.firstName && clerkUser.lastName
       ? `${clerkUser.firstName} ${clerkUser.lastName}`.trim()
       : clerkUser.username || clerkUser.firstName || undefined
 
     // Determine user tier from Clerk metadata
     const userTier = determineUserTier(clerkUser)
-    
+    console.log(`[AUTH-${requestId}] User tier determined:`, userTier)
+
     // Extract language preference
-    const language = c.req.header('X-Language') || 
+    const language = c.req.header('X-Language') ||
                     c.req.header('x-language') ||
                     c.req.header('Accept-Language')?.split(',')[0] || 'en'
+
+    console.log(`[AUTH-${requestId}] Creating authenticated context:`, {
+      userTier,
+      language,
+      userId: clerkUser.id.substring(0, 8) + '...',
+      userEmail: userEmail?.substring(0, 3) + '***' || 'none',
+      userName: userName?.substring(0, 3) + '***' || 'none'
+    })
 
     // Create authenticated runtime context
     const authenticatedContext: AuthenticatedRuntimeContext = {
@@ -178,19 +247,39 @@ export const clerkAuthMiddleware = async (c: Context<{ Variables: AuthVariables;
 
     // Validate the context
     const validatedContext = authenticatedRuntimeContextSchema.parse(authenticatedContext)
-    
+    console.log(`[AUTH-${requestId}] Context validation successful`)
+
     // Set context in Hono
     c.set('runtimeContext', validatedContext)
     c.set('clerkUserId', clerkUser.id)
     c.set('userEmail', userEmail)
 
-    console.log(`Authenticated user: ${clerkUser.id} (${userEmail}) - Tier: ${userTier}`)
-    
+    console.log(`[AUTH-${requestId}] Authenticated user: ${clerkUser.id.substring(0, 8)}... (${userEmail?.substring(0, 3)}***) - Tier: ${userTier}`)
+    console.log(`[AUTH-${requestId}] Authentication completed successfully`)
+
     await next()
   } catch (error) {
-    console.error('Authentication error:', error)
+    console.error(`[AUTH-${requestId}] Authentication error:`, {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : 'Unknown',
+      requestUrl: c.req.url,
+      requestMethod: c.req.method,
+      hasAuthHeader: !!c.req.header('Authorization'),
+      authHeaderPrefix: c.req.header('Authorization')?.substring(0, 20) + '...' || 'none'
+    })
+
+    // Log additional context for debugging
+    console.error(`[AUTH-${requestId}] Error context:`, {
+      clerkSecretKeyPresent: !!Bun.env.CLERK_SECRET_KEY,
+      clerkPublishableKeyPresent: !!Bun.env.CLERK_PUBLISHABLE_KEY,
+      authorizedParties: Bun.env.CLERK_AUTHORIZED_PARTIES || 'http://localhost:8080',
+      userAgent: c.req.header('user-agent'),
+      host: c.req.header('host')
+    })
 
     // On authentication failure, fall back to anonymous context
+    console.log(`[AUTH-${requestId}] Falling back to anonymous context due to authentication failure`)
     const language = c.req.header('X-Language') ||
                     c.req.header('x-language') ||
                     c.req.header('Accept-Language')?.split(',')[0] || 'en'
@@ -203,6 +292,7 @@ export const clerkAuthMiddleware = async (c: Context<{ Variables: AuthVariables;
     }
 
     c.set('runtimeContext', unauthenticatedContext)
+    console.log(`[AUTH-${requestId}] Anonymous context set, proceeding with request`)
 
     // For protected routes, you might want to return 401 instead
     // For now, we'll allow anonymous access to maintain compatibility
@@ -216,9 +306,19 @@ export const clerkAuthMiddleware = async (c: Context<{ Variables: AuthVariables;
  * Ensures that only authenticated users can access certain endpoints
  */
 export const requireAuth = async (c: Context<{ Variables: AuthVariables; Bindings: CloudflareBindings }>, next: Next) => {
+  const requestId = Math.random().toString(36).substring(7)
+  console.log(`[REQUIRE-AUTH-${requestId}] Checking authentication for ${c.req.method} ${c.req.url}`)
+
   const runtimeContext = c.get('runtimeContext')
+  console.log(`[REQUIRE-AUTH-${requestId}] Runtime context:`, {
+    hasContext: !!runtimeContext,
+    isAuthenticated: runtimeContext?.['is-authenticated'] || false,
+    userId: runtimeContext?.['user-id']?.substring(0, 8) + '...' || 'none',
+    userTier: runtimeContext?.['user-tier'] || 'none'
+  })
 
   if (!runtimeContext || !runtimeContext['is-authenticated']) {
+    console.log(`[REQUIRE-AUTH-${requestId}] Authentication required - rejecting request`)
     return c.json({
       error: 'Authentication required',
       message: 'This endpoint requires a valid authentication token',
@@ -226,6 +326,7 @@ export const requireAuth = async (c: Context<{ Variables: AuthVariables; Binding
     }, 401)
   }
 
+  console.log(`[REQUIRE-AUTH-${requestId}] Authentication verified, proceeding`)
   await next()
 }
 
