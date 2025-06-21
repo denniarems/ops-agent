@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZapGap Application Architecture</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@latest" defer></script>
+</head>
+<body class="bg-gray-900 text-gray-300 font-sans">
+
+    <div id="app" class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="mb-12 text-center">
+            <h1 class="text-4xl sm:text-5xl font-bold text-white tracking-tight">ZapGap Application Architecture</h1>
+            <p class="mt-4 text-lg text-gray-400">Visualizing the core infrastructure and data flows.</p>
+        </header>
+
+        <main class="space-y-16">
+            
+            <!-- Section 1: High-Level System Architecture -->
+            <section class="diagram-container">
+                <h2 class="diagram-title">
+                    <span data-lucide="network" class="icon" aria-hidden="true"></span>
+                    High-Level System Architecture
+                </h2>
+                <div class="mermaid-wrapper">
+                    <pre class="mermaid">
+graph TD
+    subgraph External_Actors ["🌍 External Actors"]
+        U["👤 End Users"]
+        D["👨‍💻 Developers"]
+    end
+
+    subgraph Frontend_Layer ["🖥️ Frontend Layer (Browser)"]
+        FC["🌐 React Client<br/>Vite, TypeScript, Tailwind"]
+    end
+
+    subgraph API_Gateway ["🚪 API Gateway Layer"]
+        RP["🔒 Caddy Reverse Proxy<br/>Ports 80/443, SSL, Load Balancing"]
+    end
+
+    subgraph Backend_Services ["⚙️ Backend Services (AWS EC2)"]
+        API["🖥️ Hono REST API<br/>Port 3000 | Auth & AWS Data"]
+        MAS["🕸️ Mastra AI Agent System<br/>Port 4111 | Complex Logic"]
+    end
+
+    subgraph External_Services ["☁️ External Services"]
+        CL["🔐 Clerk<br/>Identity & JWT"]
+        DB["🗄️ Supabase<br/>PostgreSQL"]
+        RD["📊 Upstash Redis<br/>Session & History"]
+        VC["🔍 Upstash Vector<br/>Semantic Search"]
+        OR["🧠 OpenRouter<br/>LLM Gateway"]
+        AWS_SVC["☁️ AWS Services<br/>EC2, S3, etc."]
+    end
+
+    %% Main flow connections
+    U --> FC
+    D --> FC
+    FC --> RP
+    RP --> API
+
+    %% Authentication flow
+    FC -.->|"Sign-in/Sign-up"| CL
+    API -.->|"Validate JWT"| CL
+
+    %% Data and service connections
+    API -->|"Persist Data"| DB
+    API -->|"Delegate Tasks"| MAS
+
+    MAS -->|"Session Data"| RD
+    MAS -->|"Vector Search"| VC
+    MAS -->|"LLM Requests"| OR
+    MAS -->|"Infrastructure"| AWS_SVC
+
+    %% Styling
+    classDef actors fill:#1e40af,stroke:#1e3a8a,stroke-width:2px,color:#fff
+    classDef frontend fill:#059669,stroke:#047857,stroke-width:2px,color:#fff
+    classDef gateway fill:#7c2d12,stroke:#92400e,stroke-width:2px,color:#fff
+    classDef backend fill:#7c3aed,stroke:#6d28d9,stroke-width:2px,color:#fff
+    classDef external fill:#dc2626,stroke:#b91c1c,stroke-width:2px,color:#fff
+
+    class U,D actors
+    class FC frontend
+    class RP gateway
+    class API,MAS backend
+    class CL,DB,RD,VC,OR,AWS_SVC external
+                    </pre>
+                </div>
+            </section>
+
+            <!-- Section 2: Deployment Infrastructure Diagram -->
+            <section class="diagram-container">
+                <h2 class="diagram-title">
+                    <span data-lucide="server" class="icon" aria-hidden="true"></span>
+                    Detailed Deployment Architecture
+                </h2>
+                <div class="mermaid-wrapper">
+                    <pre class="mermaid">
+graph TD
+    subgraph "User_Layer" ["🌐 User Layer"]
+        Internet[🌐 Internet Traffic]
+    end
+
+    subgraph "Cloudflare_Layer" ["☁️ Cloudflare Layer"]
+        CDNS[🌍 Cloudflare DNS]
+        CPages[📄 Cloudflare Pages<br/>Global CDN for React Client]
+    end
+
+    subgraph "AWS_Cloud" ["☁️ AWS Cloud (VPC)"]
+        R53[🌍 AWS Route 53]
+        subgraph "Public_Subnet" ["🌐 Public Subnet"]
+            ALB[⚖️ Application Load Balancer]
+            NGW[🌐 NAT Gateway]
+        end
+        subgraph "Private_Subnet" ["🔒 Private Subnet"]
+            ASG[🖥️ EC2 Auto Scaling Group<br/>t3.medium instances]
+        end
+        ECR[📦 Elastic Container Registry<br/>Stores Docker Images]
+        CW[📊 CloudWatch<br/>Logs & Metrics]
+    end
+
+    subgraph "EC2_Instance" ["🖥️ EC2 Instance"]
+        Hono[🔧 Hono Server Container]
+        Mastra[🕸️ Mastra Agent System Container]
+    end
+
+    subgraph "External_Services" ["🔗 External Services"]
+        ExtSvc[Clerk, Supabase, Upstash, OpenRouter]
+    end
+
+    %% Traffic flow
+    Internet --> CDNS
+    CDNS -->|Serves UI| CPages
+
+    CDNS -->|API Requests| R53
+    R53 --> ALB
+    ALB --> ASG
+    ASG --> EC2_Instance
+    ASG --> Hono
+    ASG --> Mastra
+
+    %% Outbound connections
+    ASG -->|Outbound via| NGW
+    NGW -->|HTTPS| ExtSvc
+
+    %% Monitoring and deployment
+    ALB -->|Logs/Metrics| CW
+    ASG -->|Logs/Metrics| CW
+    ASG -->|Pulls Images| ECR
+
+    %% Styling
+    classDef user fill:#1e40af,stroke:#1e3a8a,stroke-width:2px,color:#fff
+    classDef cloudflare fill:#f97316,stroke:#ea580c,stroke-width:2px,color:#fff
+    classDef aws fill:#fbbf24,stroke:#f59e0b,stroke-width:2px,color:#000
+    classDef compute fill:#7c3aed,stroke:#6d28d9,stroke-width:2px,color:#fff
+    classDef external fill:#dc2626,stroke:#b91c1c,stroke-width:2px,color:#fff
+
+    class Internet user
+    class CDNS,CPages cloudflare
+    class R53,ALB,NGW,ASG,ECR,CW aws
+    class Hono,Mastra compute
+    class ExtSvc external
+                    </pre>
+                </div>
+            </section>
+
+            <!-- Section 3: Core Data Flows -->
+            <section class="diagram-container">
+                <h2 class="diagram-title">
+                    <span data-lucide="arrow-right-left" class="icon" aria-hidden="true"></span>
+                    Core Data Flows
+                </h2>
+                <div class="mermaid-wrapper">
+                    <pre class="mermaid">
+sequenceDiagram
+    participant U as 👤 User
+    participant CF as 🌐 Cloudflare
+    participant S as 🔧 Hono Server
+    participant AN as 🕸️ Agent Network
+    participant CA as 🧠 Core Agent
+    participant CL as 🔐 Clerk
+    participant SB as 🗄️ Supabase
+    participant Mem as 💾 Memory (Redis/Vector)
+    participant OR as 🤖 OpenRouter
+    participant AWS as ☁️ AWS Services
+
+    U->>+CF: 1. API Request w/ JWT
+    CF->>+S: 2. Proxy Request
+    S->>+CL: 3. Validate JWT
+    CL-->>-S: Validation OK
+    S->>+SB: 4. Get AWS Credentials
+    SB-->>-S: Return Credentials
+    
+    S->>+AN: 5. Pass request to Agent System
+    AN->>+CA: 6. Route to Core Agent
+    CA->>+Mem: 7. Load History & Context
+    Mem-->>-CA: Return Data
+
+    CA->>+OR: 8. Delegate Task (e.g., generate plan)
+    OR-->>-CA: Return Result
+    
+    CA->>+AWS: 9. Execute action (e.g., via CFN Agent)
+    AWS-->>-CA: Execution Result
+
+    CA->>CA: 10. Synthesize Final Response
+    CA->>+Mem: 11. Store Updated Conversation
+    Mem-->>-CA: Ack
+    CA-->>S: 12. Final Response
+    S-->>CF: 13. Pass-through Response
+    CF-->>U: 14. Display Final Response
+                    </pre>
+                </div>
+            </section>
+
+            <!-- Section 4: Network Security Architecture -->
+            <section class="diagram-container">
+                <h2 class="diagram-title">
+                    <span data-lucide="shield" class="icon" aria-hidden="true"></span>
+                    Network Security Architecture
+                </h2>
+                <div class="mermaid-wrapper">
+                    <pre class="mermaid">
+graph TD
+    subgraph "Internet"
+        Traffic[🌐 Internet Traffic]
+    end
+
+    subgraph "Cloudflare Edge"
+        CFSec[🛡️ DDoS Protection / 🔥 WAF]
+    end
+
+    subgraph "AWS VPC"
+        style AWS VPC fill:#27272a,stroke:#fff
+        IGW[🚪 Internet Gateway]
+        subgraph "Public Subnets"
+            NACL_Public[📋 Public NACL]
+            ALB[⚖️ ALB Nodes]
+            NAT[🌐 NAT Gateways]
+        end
+        subgraph "Private Subnets"
+            NACL_Private[📋 Private NACL]
+            EC2[🖥️ EC2 Instances]
+        end
+    end
+
+    subgraph "Security Controls"
+        SG_ALB[🛡️ ALB Security Group <br/> Allow HTTPS Ingress]
+        SG_EC2[🛡️ EC2 Security Group <br/> Allow traffic from ALB-SG]
+    end
+    
+    Traffic --> CFSec
+    CFSec --> IGW
+    IGW --> NACL_Public --> ALB
+    ALB -- Ingress via --> SG_ALB
+    ALB --> SG_EC2
+    SG_EC2 -- Ingress to --> EC2
+    EC2 --> NACL_Private
+    EC2 -- Outbound to Internet --> NAT
+                    </pre>
+                </div>
+            </section>
+
+            <!-- Section 5: Multi-Agent System Interactions -->
+            <section class="diagram-container">
+                <h2 class="diagram-title">
+                    <span data-lucide="git-merge" class="icon" aria-hidden="true"></span>
+                    Multi-Agent System Interactions
+                </h2>
+                <div class="mermaid-wrapper">
+                    <pre class="mermaid">
+flowchart TD
+    subgraph "User Input"
+        Req[User Request]
+    end
+
+    subgraph "Mastra AI System"
+        Router("🕸️ Agent Network Router")
+        
+        subgraph "Agents"
+            Core("🧠 Core Agent <br/> Planning & Coordination")
+            CFN("🏗️ CloudFormation Agent <br/> Manages AWS Infra")
+            Doc("📚 Documentation Agent <br/> Knowledge & Best Practices")
+        end
+    end
+
+    subgraph "External Resources"
+        OR[🧠 OpenRouter]
+        Mem[📊 Upstash Redis/Vector]
+        AWS[☁️ AWS APIs]
+    end
+    
+    Req --> Router
+    
+    Router -- Routes to appropriate agent --> Core & CFN & Doc
+    
+    Core -- Delegates to --> CFN
+    Core -- Consults --> Doc
+    CFN -- Consults --> Doc
+    
+    Core & CFN & Doc -- Use --> Mem
+    Core & CFN & Doc -- Use --> OR
+    CFN -- Executes on --> AWS
+
+    Core -- Synthesizes Response --> Router
+    Router --> FinalResponse[Final Response to User]
+
+    classDef agent fill:#1e3a8a,stroke:#fff,stroke-width:2px,color:#fff;
+    class Core,CFN,Doc agent;
+    classDef router fill:#4c1d95,stroke:#fff,stroke-width:2px,color:#fff;
+    class Router router;
+                    </pre>
+                </div>
+            </section>
+
+            <!-- Section 6: Comprehensive Security Architecture -->
+            <section class="diagram-container">
+                <h2 class="diagram-title">
+                    <span data-lucide="lock" class="icon" aria-hidden="true"></span>
+                    Comprehensive Security Architecture
+                </h2>
+                <div class="mermaid-wrapper">
+                    <pre class="mermaid">
+graph TD
+    subgraph Threat_Landscape ["🚨 Threat Landscape"]
+        T1["🔴 External Attackers & Bots<br/>DDoS, Injection, Brute Force"]
+        T2["🟠 Insider Threats<br/>Privilege Escalation, Data Exfiltration"]
+        T3["🟡 Application Vulnerabilities<br/>OWASP Top 10, Zero-Days"]
+    end
+
+    subgraph Defense_Layers ["🛡️ Defense in Depth Strategy"]
+        L1["🌐 Edge Security<br/>Cloudflare Protection"]
+        L2["🏗️ Network Security<br/>VPC, Subnets, NACLs"]
+        L3["🔐 Application Security<br/>Authentication & Authorization"]
+        L4["🗄️ Data Security<br/>Encryption & Access Control"]
+        L5["📊 Monitoring & Response<br/>Detection & Incident Response"]
+    end
+
+    subgraph Security_Controls ["🔧 Security Controls Implementation"]
+        subgraph Edge_Controls ["Edge Layer"]
+            C1["🛡️ WAF & DDoS Protection"]
+            C2["🔍 Bot Detection"]
+            C3["🌍 Geo-blocking"]
+        end
+
+        subgraph Network_Controls ["Network Layer"]
+            C4["🧱 Network Segmentation"]
+            C5["🚪 Security Groups"]
+            C6["📋 Network ACLs"]
+        end
+
+        subgraph App_Controls ["Application Layer"]
+            C7["🔑 IAM & Least Privilege"]
+            C8["🎫 JWT Validation"]
+            C9["✅ Input Validation"]
+            C10["🔒 Rate Limiting"]
+        end
+
+        subgraph Data_Controls ["Data Layer"]
+            C11["🔐 Encryption at Rest"]
+            C12["🔒 Encryption in Transit"]
+            C13["🗝️ Key Management"]
+        end
+
+        subgraph Monitor_Controls ["Monitoring Layer"]
+            C14["📊 CloudWatch Logs"]
+            C15["🚨 Security Alerts"]
+            C16["🔍 Audit Trails"]
+        end
+    end
+
+    %% Threat mitigation flows
+    T1 -.->|"Mitigated by"| L1
+    T1 -.->|"Blocked by"| L2
+    T1 -.->|"Filtered by"| L3
+
+    T2 -.->|"Controlled by"| L3
+    T2 -.->|"Monitored by"| L4
+    T2 -.->|"Detected by"| L5
+
+    T3 -.->|"Prevented by"| L3
+    T3 -.->|"Contained by"| L4
+    T3 -.->|"Responded to"| L5
+
+    %% Defense layer implementations
+    L1 --> Edge_Controls
+    L2 --> Network_Controls
+    L3 --> App_Controls
+    L4 --> Data_Controls
+    L5 --> Monitor_Controls
+
+    %% Control relationships
+    C1 & C2 & C3 -.->|"Feed into"| C15
+    C4 & C5 & C6 -.->|"Logged by"| C14
+    C7 & C8 & C9 & C10 -.->|"Audited by"| C16
+    C11 & C12 & C13 -.->|"Monitored by"| C14
+
+    %% Styling
+    classDef threat fill:#991b1b,stroke:#fff,stroke-width:2px,color:#fff
+    classDef layer fill:#0c4a6e,stroke:#fff,stroke-width:2px,color:#fff
+    classDef edge fill:#059669,stroke:#047857,stroke-width:2px,color:#fff
+    classDef network fill:#7c2d12,stroke:#92400e,stroke-width:2px,color:#fff
+    classDef app fill:#7c3aed,stroke:#6d28d9,stroke-width:2px,color:#fff
+    classDef data fill:#dc2626,stroke:#b91c1c,stroke-width:2px,color:#fff
+    classDef monitor fill:#f59e0b,stroke:#d97706,stroke-width:2px,color:#000
+
+    class T1,T2,T3 threat
+    class L1,L2,L3,L4,L5 layer
+    class C1,C2,C3 edge
+    class C4,C5,C6 network
+    class C7,C8,C9,C10 app
+    class C11,C12,C13 data
+    class C14,C15,C16 monitor
+                    </pre>
+                </div>
+            </section>
+        </main>
+
+        <footer class="mt-16 pt-8 border-t border-gray-800 text-center text-gray-500">
+            <p>&copy; 2025 ZapGap. All rights reserved.</p>
+        </footer>
+    </div>
+    
+    <script type="module" src="https://unpkg.com/mermaid@10/dist/mermaid.esm.min.mjs"></script>
+    <script src="script.js"></script>
+</body>
+</html>
