@@ -4,6 +4,15 @@ import { z } from 'zod';
 // Static content from PROMPT_UNDERSTANDING.md
 const PROMPT_UNDERSTANDING = `# AWSLABS.CORE-MCP-SERVER - How to translate a user query into AWS expert advice
 
+## CRITICAL RESPONSE REQUIREMENTS:
+• Be concise and focus on essential information - avoid unnecessary detail
+• Use bullet points for clarity and structured communication
+• Provide maximum 3 key points per response as a quality filter
+• Prioritize actionable information over verbose explanations
+• Format responses as: Problem → Solution → Next Steps
+• Keep code examples clear and focused on practical implementation
+• Deliver complete, helpful responses when complex topics require thorough explanation
+
 ## 1. Initial Query Analysis
 
 When a user presents a query, follow these steps to break it down:
@@ -196,18 +205,25 @@ Analysis:
 
 ## 4. Best Practices
 
-1. Always consider:
+1. Always consider (brief responses only):
 - Serverless-first architecture
 - Pay-per-use pricing models
 - Managed services over self-hosted
 - Built-in security features
 - Scalability requirements
 
-2. Documentation:
-- Reference AWS well-architected framework
-- Include cost optimization strategies
-- Note security best practices
-- Document compliance considerations
+2. Documentation (concise format):
+- Reference AWS well-architected framework (links only)
+- Include cost optimization strategies (bullet points)
+- Note security best practices (1 sentence each)
+- Document compliance considerations (essential only)
+
+3. Response Format Requirements:
+- Be concise and focus on essential information
+- Use bullet points for structured communication
+- Provide 3 key points maximum as a quality filter
+- Include actionable information with crisp, direct communication
+- Deliver thorough responses when complex topics require complete explanation
 
 ## 5. Tool Usage Strategy
 

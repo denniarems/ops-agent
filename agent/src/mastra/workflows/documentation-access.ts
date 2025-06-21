@@ -279,23 +279,23 @@ const coreAgentPlanning = createStep({
       console.log('Starting core agent planning for documentation access...');
       
       const planningPrompt = `
-        Analyze this documentation request and create a comprehensive search strategy:
-        
+        CRITICAL: Be concise and focus on essentials. Use bullet points for clarity.
+
+        Analyze this documentation request and create a focused search strategy:
+
         Query: ${inputData.query}
         Context: ${inputData.context || 'None provided'}
         AWS Services: ${inputData.awsServices?.join(', ') || 'Not specified'}
         Priority: ${inputData.priority}
         Include Examples: ${inputData.includeExamples}
         Max Results: ${inputData.maxResults}
-        
-        Please provide:
-        1. Analysis of the query complexity and scope
-        2. Recommended approach for documentation search
-        3. Identification of relevant AWS services
-        4. Search strategy and keywords
-        5. Estimated complexity level
-        
-        Focus on creating an efficient plan that will guide the documentation agent.
+
+        Provide (focus on 3 key elements):
+        • Query complexity assessment - concise evaluation
+        • Recommended AWS services - prioritized list
+        • Search strategy - essential keywords and approach
+
+        Focus on actionable plan with crisp, direct communication.
       `;
 
       let planningResult: RetryOperationResult<AgentExecutionResult | NetworkExecutionResult>;
@@ -486,6 +486,8 @@ const documentationAgentExecution = createStep({
       console.log('Starting documentation agent execution...');
 
       const documentationPrompt = `
+        CRITICAL: Be concise and focus on essential information. Use bullet points for clarity.
+
         Based on the planning analysis, search for AWS documentation:
 
         Planning Approach: ${inputData.recommendedApproach}
@@ -493,13 +495,12 @@ const documentationAgentExecution = createStep({
         Search Strategy: ${inputData.searchStrategy}
         Complexity: ${inputData.estimatedComplexity}
 
-        Please provide:
-        1. Relevant documentation sections for each identified service
-        2. Code examples and implementation patterns
-        3. Best practices and recommendations
-        4. Specific answers based on the planning analysis
+        Provide (focus on 3 key elements):
+        • Key documentation sections - prioritized service information
+        • Essential code examples - clear, practical implementations
+        • Critical best practices - actionable recommendations
 
-        Focus on accuracy and relevance.
+        Focus on actionable information with crisp, direct communication.
       `;
 
       const documentationResult: RetryOperationResult<AgentExecutionResult> = await retryAgentOperation(async () => {
