@@ -72,7 +72,7 @@ export const coreAgent = new Agent({
     Use the native Core tools as the starting point for every AWS project and orchestrate other specialized services based on specific needs.
   `;
   },
-  model: openrouter('mistralai/magistral-medium-2506'),
+  model: openrouter('google/gemini-2.5-pro'),
   workflows: {
     documentationAccessWorkflow,
   },

@@ -103,6 +103,6 @@ export const documentationAgent = new Agent({
     Always prioritize official AWS documentation and best practices in responses.
   `;
   },
-  model: openrouter('mistralai/magistral-medium-2506'),
+  model: openrouter('google/gemini-2.5-pro'),
   memory,
 });
