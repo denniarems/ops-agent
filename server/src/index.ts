@@ -33,9 +33,23 @@ const app = new Hono<{
 
 // Legacy runtime context middleware is replaced by Clerk authentication middleware
 
-// CORS middleware
+// CORS middleware with environment-based configuration
 app.use('*', cors({
-  origin: '*',
+  origin: (origin) => {
+    const nodeEnv = Bun.env.NODE_ENV || 'development'
+
+    if (nodeEnv === 'production') {
+      // Production: Allow specific origins
+      const allowedOrigins = [
+        'https://zapgap.buildverse.app',
+        'https://www.zapgap.buildverse.app'
+      ]
+      return allowedOrigins.includes(origin || '') ? origin : null
+    } else {
+      // Development: Allow all origins
+      return origin || '*'
+    }
+  },
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: [
     'Content-Type',

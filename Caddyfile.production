@@ -29,24 +29,30 @@ your-domain.com {
     header {
         # HSTS with preload
         Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-        
+
         # Content security
         X-Content-Type-Options "nosniff"
         X-Frame-Options "DENY"
         X-XSS-Protection "1; mode=block"
         Referrer-Policy "strict-origin-when-cross-origin"
-        
+
         # Content Security Policy (adjust as needed for your app)
         Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none';"
-        
+
         # Remove server information
         -Server
-        
-        # Additional security headers
+
+        # CORS headers for production
+        Access-Control-Allow-Origin "https://zapgap.buildverse.app"
+        Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+        Access-Control-Allow-Headers "Content-Type, Authorization, X-User-ID, X-User-Tier, X-Language, X-AWS-Access-Key-ID, X-AWS-Secret-Access-Key, X-AWS-Region"
+        Access-Control-Allow-Credentials "false"
+
+        # Additional security headers (modified for CORS compatibility)
         Permissions-Policy "geolocation=(), microphone=(), camera=()"
         Cross-Origin-Embedder-Policy "require-corp"
         Cross-Origin-Opener-Policy "same-origin"
-        Cross-Origin-Resource-Policy "same-origin"
+        # Removed Cross-Origin-Resource-Policy to allow cross-origin requests
     }
 
     # Rate limiting (optional - uncomment if needed)
@@ -57,6 +63,12 @@ your-domain.com {
     #         window 1m
     #     }
     # }
+
+    # Handle preflight requests
+    @options {
+        method OPTIONS
+    }
+    respond @options 204
 
     # Health check endpoint
     handle /health {
