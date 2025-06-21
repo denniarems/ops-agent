@@ -170,7 +170,7 @@ export const clerkAuthMiddleware = async (c: Context<{ Variables: AuthVariables;
 
     // Authenticate request with Clerk
     const requestState = await clerkClient.authenticateRequest(request, {
-      authorizedParties: [Bun.env.CLERK_AUTHORIZED_PARTIES || 'http://localhost:8080'],
+      authorizedParties: [Bun.env.CLERK_AUTHORIZED_PARTIES || 'http://localhost:8080','https://zapgap.buildverse.app'],
     })
     console.log(`[AUTH-${requestId}] Clerk authenticateRequest completed`)
 
