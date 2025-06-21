@@ -1,0 +1,156 @@
+# Caddyfile for ZapGap Application
+# This configuration sets up Caddy as a reverse proxy with automatic HTTPS
+
+# Default configuration for development (localhost)
+# For production, replace with your actual domain
+{
+    # Global options
+    admin off
+    auto_https off
+    local_certs
+    
+    # Enable access logs
+    log {
+        output stdout
+        format console
+        level INFO
+    }
+}
+
+# Development configuration (HTTP only)
+:80 {
+    # Enable request logging
+    log {
+        output stdout
+        format console
+    }
+
+    # Security headers
+    header {
+        # Security headers
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        
+        # Remove server information
+        -Server
+        
+        # CORS headers for development
+        Access-Control-Allow-Origin "*"
+        Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+        Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
+    }
+
+    # Handle preflight requests
+    @options {
+        method OPTIONS
+    }
+    respond @options 204
+
+    # Health check endpoint
+    handle /health {
+        respond "OK" 200
+    }
+
+    # Reverse proxy to the server service
+    reverse_proxy server:3000 {
+        # Health check for upstream
+        health_uri /health
+        health_interval 30s
+        health_timeout 10s
+        
+        # Load balancing (single backend for now)
+        lb_policy round_robin
+        
+        # Retry policy
+        lb_try_duration 30s
+        lb_try_interval 250ms
+        
+        # Headers to pass through
+        header_up Host {upstream_hostport}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+        header_up X-Forwarded-Host {host}
+        
+        # Timeouts
+        transport http {
+            dial_timeout 10s
+            response_header_timeout 30s
+            read_timeout 60s
+            write_timeout 60s
+        }
+    }
+
+    # Error handling
+    handle_errors {
+        @5xx expression `{err.status_code} >= 500`
+        respond @5xx "Internal Server Error" 500
+        
+        @4xx expression `{err.status_code} >= 400 && {err.status_code} < 500`
+        respond @4xx "Client Error" {err.status_code}
+        
+        respond "An error occurred" 500
+    }
+}
+
+# Production configuration (HTTPS with Let's Encrypt)
+# Uncomment and modify for production use
+# your-domain.com {
+#     # Enable request logging
+#     log {
+#         output stdout
+#         format console
+#     }
+# 
+#     # Security headers for production
+#     header {
+#         Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+#         X-Content-Type-Options "nosniff"
+#         X-Frame-Options "DENY"
+#         X-XSS-Protection "1; mode=block"
+#         Referrer-Policy "strict-origin-when-cross-origin"
+#         Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none';"
+#         
+#         # Remove server information
+#         -Server
+#     }
+# 
+#     # Health check endpoint
+#     handle /health {
+#         respond "OK" 200
+#     }
+# 
+#     # Reverse proxy to the server service
+#     reverse_proxy server:3000 {
+#         health_uri /health
+#         health_interval 30s
+#         health_timeout 10s
+#         
+#         header_up Host {upstream_hostport}
+#         header_up X-Real-IP {remote_host}
+#         header_up X-Forwarded-For {remote_host}
+#         header_up X-Forwarded-Proto {scheme}
+#         header_up X-Forwarded-Host {host}
+#         
+#         transport http {
+#             dial_timeout 10s
+#             response_header_timeout 30s
+#             read_timeout 60s
+#             write_timeout 60s
+#         }
+#     }
+# 
+#     # Error handling
+#     handle_errors {
+#         @5xx expression `{err.status_code} >= 500`
+#         respond @5xx "Internal Server Error" 500
+#         
+#         @4xx expression `{err.status_code} >= 400 && {err.status_code} < 500`
+#         respond @4xx "Client Error" {err.status_code}
+#         
+#         respond "An error occurred" 500
+#     }
+# }
