@@ -110,6 +110,6 @@ export const documentationAgent = new Agent({
     Always prioritize official AWS documentation and best practices in responses.
   `;
   },
-  model: openrouter('google/gemini-2.5-pro'),
+  model: openrouter('google/gemini-2.5-flash'),
   memory,
 });

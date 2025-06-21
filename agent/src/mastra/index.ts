@@ -118,7 +118,7 @@ export const awsInfrastructureNetwork = new AgentNetwork({
 
     Remember: Your goal is to provide the most efficient and comprehensive response by leveraging the specialized capabilities of each agent in the network.
   `,
-  model: openrouter('google/gemini-2.5-pro'),
+  model: openrouter('google/gemini-2.5-flash'),
   agents: [coreAgent, cfnAgent, documentationAgent],
 });
 

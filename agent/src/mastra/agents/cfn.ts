@@ -102,6 +102,6 @@ export const cfnAgent = new Agent({
     Prioritize security, cost optimization, and operational excellence.
   `;
   },
-  model: openrouter('google/gemini-2.5-pro'),
+  model: openrouter('google/gemini-2.5-flash'),
   memory,
 });
