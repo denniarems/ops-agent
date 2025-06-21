@@ -15,9 +15,8 @@ RUN bun install
 COPY . ./
 RUN bun run build
 
-# Ensure .mastra/output directory exists and has proper permissions
-RUN mkdir -p /app/.mastra/output && \
-    chown -R node:node /app/.mastra
+# Ensure .mastra/output directory exists
+RUN mkdir -p /app/.mastra/output
 
 EXPOSE 4111
 CMD ["bun", "run", "start"]
