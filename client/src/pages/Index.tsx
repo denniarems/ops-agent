@@ -369,7 +369,7 @@ const Index = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
             >
-              <motion.div
+              {/* <motion.div
                 whileHover={{ scale: 1.05, y: -5 }}
                 whileTap={{ scale: 0.98 }}
                 className="relative group"
@@ -385,7 +385,7 @@ const Index = () => {
                     <span>Try Demo</span>
                   </div>
                 </Button>
-              </motion.div>
+              </motion.div> */}
 
               <motion.div
                 whileHover={{ scale: 1.05, y: -5 }}

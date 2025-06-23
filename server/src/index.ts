@@ -41,8 +41,8 @@ app.use('*', cors({
     if (nodeEnv === 'production') {
       // Production: Allow specific origins
       const allowedOrigins = [
-        'https://zapgap.buildverse.app',
-        'https://www.zapgap.buildverse.app'
+        'https://zapgap.tech',
+        'https://www.zapgap.tech'
       ]
       return allowedOrigins.includes(origin || '') ? origin : null
     } else {
