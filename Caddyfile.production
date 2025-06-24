@@ -43,7 +43,7 @@ your-domain.com {
         -Server
 
         # CORS headers for production
-        Access-Control-Allow-Origin "https://zapgap.buildverse.app"
+        Access-Control-Allow-Origin "https://zapgap.tech"
         Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
         Access-Control-Allow-Headers "Content-Type, Authorization, X-User-ID, X-User-Tier, X-Language, X-AWS-Access-Key-ID, X-AWS-Secret-Access-Key, X-AWS-Region"
         Access-Control-Allow-Credentials "false"
