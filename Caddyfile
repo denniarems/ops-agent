@@ -5,6 +5,9 @@
     # Global options
     admin off
 
+    # Email for Let's Encrypt
+    email mail@zapgap.tech
+
     # Enable access logs
     log {
         output stdout
