@@ -1,5 +1,5 @@
 # Production Caddyfile for ZapGap Application
-# Configured for zapgap-api.buildverse.app with CORS support
+# Configured for api.zapgap.tech with CORS support
 
 {
     # Global options
@@ -14,7 +14,7 @@
 }
 
 # Production HTTPS configuration for API server
-zapgap-api.buildverse.app {
+api.zapgap.tech {
     # Enable request logging
     log {
         output stdout
@@ -39,7 +39,7 @@ zapgap-api.buildverse.app {
         -Server
 
         # CORS headers for production
-        Access-Control-Allow-Origin "https://zapgap.buildverse.app"
+        Access-Control-Allow-Origin "https://zapgap.tech"
         Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
         Access-Control-Allow-Headers "Content-Type, Authorization, X-User-ID, X-User-Tier, X-Language, X-AWS-Access-Key-ID, X-AWS-Secret-Access-Key, X-AWS-Region"
         Access-Control-Allow-Credentials "false"
@@ -130,15 +130,15 @@ zapgap-api.buildverse.app {
 }
 
 # Redirect www to non-www (optional)
-www.zapgap-api.buildverse.app {
-    redir https://zapgap-api.buildverse.app{uri} permanent
+www.api.zapgap.tech {
+    redir https://api.zapgap.tech{uri} permanent
 }
 
 # HTTP to HTTPS redirect (automatic with Caddy, but explicit for clarity)
-http://zapgap-api.buildverse.app {
-    redir https://zapgap-api.buildverse.app{uri} permanent
+http://api.zapgap.tech {
+    redir https://api.zapgap.tech{uri} permanent
 }
 
-http://www.zapgap-api.buildverse.app {
-    redir https://zapgap-api.buildverse.app{uri} permanent
+http://www.api.zapgap.tech {
+    redir https://api.zapgap.tech{uri} permanent
 }
