@@ -13,12 +13,12 @@ interface AgentSelectorProps {
 
 // Available agents configuration
 const AGENT_OPTIONS: AgentOption[] = [
-  {
-    id: 'coreAgent',
-    name: 'Core Agent',
-    description: 'General infrastructure management and operations',
-    icon: 'bot'
-  },
+  // {
+  //   id: 'coreAgent',
+  //   name: 'Core Agent',
+  //   description: 'General infrastructure management and operations',
+  //   icon: 'bot'
+  // },
   {
     id: 'cfnAgent',
     name: 'CloudFormation Agent',
