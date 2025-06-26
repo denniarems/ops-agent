@@ -34,7 +34,7 @@ export const useChat = (): UseChatReturn => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [selectedAgent, setSelectedAgent] = useState<AgentType>('coreAgent');
+  const [selectedAgent, setSelectedAgent] = useState<AgentType>('cfnAgent');
 
   // Conversation management state
   const [currentThreadId, setCurrentThreadId] = useState<string | null>(null);
