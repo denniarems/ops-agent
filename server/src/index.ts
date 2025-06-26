@@ -35,33 +35,7 @@ const app = new Hono<{
 
 // CORS middleware with environment-based configuration
 app.use('*', cors({
-  origin: (origin) => {
-    const nodeEnv = Bun.env.NODE_ENV || 'development'
-
-    if (nodeEnv === 'production') {
-      // Production: Allow specific origins
-      const allowedOrigins = [
-        'https://zapgap.tech',
-        'https://www.zapgap.tech'
-      ]
-      return allowedOrigins.includes(origin || '') ? origin : null
-    } else {
-      // Development: Allow all origins
-      return origin || '*'
-    }
-  },
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowHeaders: [
-    'Content-Type',
-    'Authorization',
-    'X-User-ID',
-    'X-User-Tier',
-    'X-Language',
-    'X-AWS-Access-Key-ID',
-    'X-AWS-Secret-Access-Key',
-    'X-AWS-Region'
-  ],
-  credentials: false,
+  origin: '*',
 }))
 
 // Logger middleware (only in development)
